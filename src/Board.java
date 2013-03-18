@@ -28,6 +28,9 @@ public class Board
 	/** Out of bounds square **/
 	public static final byte OOB = -1;
 	
+	/** Used to convert Algebraic to Coordinates (and vice-versa) **/
+	public static final String[] LETTER_ARRAY = {"a","b","c","d","e","f","g","h"};
+	
 	
 	/* These are instance variables */
 	
@@ -58,6 +61,20 @@ public class Board
 		board[1][1] = (byte) i;
 	}
 	
+	
+	/** Return a list of all possible moves, in square-notation **/
+	public int[][] getAllPossibleMoves()
+	{
+		return new int[0][0];
+	}
+	
+	
+	/** Return a board that is the result of playing the given move on the given board **/
+	public static byte[][] getResultBoard(int[] move, byte[][] board)
+	{
+		return new byte[0][0];
+	}
+	
 	/** Take a full 12x12 array and trim it to an 8x8 array **/
 	public static byte[][] trimBoard(byte[][] board)
 	{
@@ -80,4 +97,52 @@ public class Board
 		
 		return board;
 	}
+	
+	
+	/** Convert coordinate notation to algebraic notation **/
+    public static String numberToLetter(int startX, int startY, int endX, int endY)
+    {
+            String s = LETTER_ARRAY[startX] + String.valueOf(startY+1) + LETTER_ARRAY[endX] + String.valueOf(endY+1);
+            return s;
+    }
+    
+    /** Convert algebraic notation to coordinate location, as an int[] (Square notation) **/
+    public static int[] letterToNumber(String s)
+    {
+            if(s.length() != 4) //Length check
+            {
+                    return null;
+            }
+            
+            int[] start = new int[2];
+            int[] end = new int[2];
+            
+            start[0] = Util.indexOf(LETTER_ARRAY, String.valueOf(s.charAt(0)));
+            start[1] = Integer.parseInt(String.valueOf(s.charAt(1))) - 1;
+            end[0] = Util.indexOf(LETTER_ARRAY, String.valueOf(s.charAt(2)));
+            end[1] = Integer.parseInt(String.valueOf(s.charAt(3))) - 1;
+            
+            int[] square = {arrayToNumber(start), arrayToNumber(end)};
+            
+            return square;
+    }
+    
+    
+    /** Convert a single square number (12) to it's coordinate equivalent (4,1) **/
+    public static int[] numberToArray(int square)
+    {
+    	int[] pos = new int[2];
+    	pos[0] = square % 8; //Get x-coord
+    	pos[1] = square / 8; //Get y-coord
+    	return pos;
+    }
+    
+    /** Convert an array coordinate (4,1) to it's single number equivalent (12)**/
+    public static int arrayToNumber(int[] coord)
+    {
+    	int square = coord[1] * 8;
+    	square += coord[0];
+    	
+    	return square;
+    }
 }

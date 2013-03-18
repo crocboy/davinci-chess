@@ -5,24 +5,44 @@
  */
 public class Board 
 {
-	/** These bytes define piece values **/
-	public static final byte WHITE_PAWN = 0;
-	public static final byte WHITE_BISHOP = 1;
-	public static final byte WHITE_KNIGHT = 2;
-	public static final byte WHITE_ROOK = 3;
-	public static final byte WHITE_QUEEN = 4;
-	public static final byte WHITE_KING = 5;
+	/* These are all of the static variables used by this class and other classes */
 	
-	public static final byte BLACK_PAWN = 6;
-	public static final byte BLACK_BISHOP = 7;
-	public static final byte BLACK_KNIGHT = 8;
-	public static final byte BLACK_ROOK = 9;
-	public static final byte BLACK_QUEEN = 10;
-	public static final byte BLACK_KING = 11;
+	/** These bytes define piece values **/
+	public static final byte WHITE_PAWN = 1;
+	public static final byte WHITE_BISHOP = 2;
+	public static final byte WHITE_KNIGHT = 3;
+	public static final byte WHITE_ROOK = 4;
+	public static final byte WHITE_QUEEN = 5;
+	public static final byte WHITE_KING = 6;
+	
+	public static final byte BLACK_PAWN = 7;
+	public static final byte BLACK_BISHOP = 8;
+	public static final byte BLACK_KNIGHT = 9;
+	public static final byte BLACK_ROOK = 10;
+	public static final byte BLACK_QUEEN = 11;
+	public static final byte BLACK_KING = 12;
+	
+	/** Empty square **/
+	public static final byte EMPTY = 0;
+	
+	/** Out of bounds square **/
+	public static final byte OOB = -1;
+	
+	
+	/* These are instance variables */
 	
 	
 	/** Defines starting position **/
-	//public static final byte[][] init = {{
+	public static final byte[][] init = 
+			
+		{{10,9,8,11,12,8,9,10},
+		{7,7,7,7,7,7,7,7},
+		{0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0},
+		{1,1,1,1,1,1,1,1},
+		{4,3,2,5,6,2,3,4}};
 
 	
 	

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /** This class represents our board.
  * It also generates possible moves.
  * @author Joey Freeland
@@ -35,17 +37,17 @@ public class Board
 	/* These are instance variables */
 	
 	
-	/** Defines starting position **/
+	/** Defines starting position.  (0,0) is a1 **/
 	public static final byte[][] init = 
 			
-		{{10,9,8,11,12,8,9,10},
-		{7,7,7,7,7,7,7,7},
-		{0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0},
-		{1,1,1,1,1,1,1,1},
-		{4,3,2,5,6,2,3,4}};
+		{{4,1,0,0,0,0,7,10},
+		{3,1,0,0,0,0,7,9},
+		{2,1,0,0,0,0,7,8},
+		{5,1,0,0,0,0,7,11},
+		{6,1,0,0,0,0,7,12},
+		{2,1,0,0,0,0,7,8},
+		{3,1,0,0,0,0,7,9},
+		{4,1,0,0,0,0,7,10}};
 
 	
 	
@@ -56,9 +58,8 @@ public class Board
 	/** Public constructor: Empty **/
 	public Board()
 	{
-		//
-		int i = board[0][0];
-		board[1][1] = (byte) i;
+		this.board = init;
+		this.fullBoard = Board.padBoard(board);
 	}
 	
 	
@@ -101,69 +102,80 @@ public class Board
 	public int[] getPawnMoves(int square)
 	{
 		byte piece = getPiece(square);
-		if(piece != Board.WHITE_PAWN || piece != Board.BLACK_PAWN)
+		boolean isBlocked = false;
+		
+		if(piece != Board.WHITE_PAWN && piece != Board.BLACK_PAWN) //Invalid piece code
 			return null;
 		
-		int[][] moves = new int[4][2];
+		int[][] allMoves = new int[4][2]; //Holds all possible moves 
+		ArrayList<Integer> moves = new ArrayList<Integer>(); //Holds all valid moves
 		
 		int[] pos = Board.numberToArray(square);
 		int x = pos[0];
 		int y = pos[1];
-		int numMoves = 0;
-		int[] moveLocs = new int[4];
+
 		
 		if(piece == Board.WHITE_PAWN)
 		{
-			moves[0][0] = x; //1 up
-			moves[0][1] = y+1;
+			isBlocked = !(getPiece(square+8) == Board.EMPTY || getPiece(square+8) == Board.OOB);
 			
-			moves[1][0] = x; //2 up
-			moves[1][1] = y+2;
+			if(!isBlocked) //Only add forward moves if it's not blocked
+			{
+				moves.add(square+8); //Up one
+				
+				if(y == 1)
+				{
+					moves.add(square+16); //Up 2
+				}
+			}
 			
-			moves[2][0] = x+1; //atack up right
-			moves[2][1] = y+1;
+			if(getPiece(x+1, y+1) != Board.EMPTY || getPiece(x+1, y+1) != Board.OOB)
+			{
+				moves.add(square + 9); //atack up right
+			}
 			
-			moves[3][0] = x-1; //attack up left
-			moves[3][1] = y+1;
+			if(getPiece(x-1, y+1) != Board.EMPTY || getPiece(x-1, y+1) != Board.OOB)
+			{
+				moves.add(square + 7); //attack up left
+			}
 		}
-		else if(piece == Board.BLACK_PAWN)
+		else if(piece == Board.BLACK_PAWN) 
 		{
-			moves[0][0] = x; //1 down
-			moves[0][1] = y-1;
+			isBlocked = !(getPiece(square-8) == Board.EMPTY || getPiece(square-8) == Board.OOB);
 			
-			moves[1][0] = x; //2 down
-			moves[1][1] = y-2;
+			if(!isBlocked) //Only add forward moves if it's not blocked
+			{
+				moves.add(square - 8); //1 down
+				
+				if(y == 6)
+				{
+					moves.add(square - 16); //2 down
+				}
+			}
 			
-			moves[2][0] = x+1; //atack down right
-			moves[2][1] = y-1;
+			if(getPiece(x+1, y-1) != Board.EMPTY || getPiece(x+1, y-1) != Board.OOB)
+			{
+				moves.add(square - 9); //Down right attack
+			}
 			
-			moves[3][0] = x-1; //attack down left
-			moves[3][1] = y-1;
+			if(getPiece(x-1, y-1) != Board.EMPTY || getPiece(x-1, y-1) != Board.OOB)
+			{
+				moves.add(square - 7); //Down left attack
+			}
 		}
 		
 		/* Eliminate moves that result in invalid destinations */
-		for(int i = 0; i < moves.length; i++)
+		/*for(int i = 0; i < allMoves.length; i++)
 		{
-			int[] newLoc = moves[i];
+			int[] newLoc = allMoves[i];
 			
 			if(getPiece(newLoc) != Board.OOB)
 			{
-				numMoves++;
-				moveLocs[i] = i; //This is a valid move!
+				moves.add(Board.arrayToNumber(newLoc));
 			}
-			
-			moveLocs[i] = -1; //Invalid move, put in a -1	
-		}
+		}*/
 		
-		/* Put our valid moves in the final moves array */
-		int[] validMoves = new int[numMoves];
-		
-		for(int i = 0; i < validMoves.length; i++)
-		{
-			//validMoves[i] = 
-		}
-		
-		return null;
+		return Board.toArray(moves);
 	}
 	
 	/** Generate knight moves **/
@@ -219,18 +231,21 @@ public class Board
 	/* End of move generation methods */
 	
 	
-	/** Return the value at the given square **/
+	/** Return the value at the given square.  Retrieves value from the full, padded board **/
 	public byte getPiece(int square)
 	{
+		if(square > 63 || square < 0)
+			return Board.OOB;
+		
 		int[] location = Board.numberToArray(square);
-		return board[location[0]][location[1]];
+		return fullBoard[location[0]+2][location[1]+2];
 	}
 	
 	
 	/** Return the value at the given coordinates **/
-	public byte getPiece(int[] loc)
+	public byte getPiece(int... loc)
 	{
-		return board[loc[0]][loc[1]];
+		return fullBoard[loc[0]+2][loc[1]+2];
 	}
 	
 	
@@ -241,8 +256,18 @@ public class Board
 		if(board[0].length != 12 || board.length != 12)
 			return null;
 
-		//Stuff
-		return board;
+		byte[][] newBoard = new byte[8][8];
+		
+		for(int x = 0; x < board.length; x++)
+		{
+			for(int y= 0; y < board[0].length; y++)
+			{
+				if((x > 1 && x < 10) && (y > 1 && y < 10)) //If the coordinate is in the 8x8 region of the board, add it to our new board!
+					newBoard[x][y] = board[x][y];
+			}
+		}
+		
+		return newBoard;
 		
 	}
 	
@@ -254,7 +279,20 @@ public class Board
 		if(board[0].length != 8 || board.length != 8)
 			return null;
 		
-		return board;
+		byte[][] newBoard = new byte[12][12];
+		
+		for(int x = 0; x < newBoard.length; x++)
+		{
+			for(int y= 0; y < newBoard[0].length; y++)
+			{
+				if((x > 1 && x < 10) && (y > 1 && y < 10)) //If the coordinate is in the 8x8 region of the board, add it to our new board!
+					newBoard[x][y] = board[x-2][y-2];
+				else
+					newBoard[x][y] = Board.OOB; //the coordinate is not a valid chess suqare, make this coord a OOB
+			}
+		}
+		
+		return newBoard;
 	}
 	
 	
@@ -303,5 +341,17 @@ public class Board
     	square += coord[0];
     	
     	return square;
+    }
+    
+    
+    /** Convert ArrayList<Integer> to int[] **/
+    public static int[] toArray(ArrayList<Integer> data)
+    {
+    	int[] newData = new int[data.size()];
+    	
+    	for(int i = 0; i < data.size(); i++)
+    		newData[i] = data.get(i);
+    	
+    	return newData;
     }
 }

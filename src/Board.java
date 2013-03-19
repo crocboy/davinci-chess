@@ -69,11 +69,170 @@ public class Board
 	}
 	
 	
+	/** Return all moves for the piece on the given square.
+	 * Moves are given as one number, the destination square.
+	 * Because the piece location is given, you already know the origin. **/
+	public int[] getMoves(int square)
+	{
+		if(square == -1 || square == 0)
+			return null;
+		
+		int[] loc = Board.numberToArray(square);
+		int x = loc[0];
+		int y = loc[1];
+		
+		byte piece = board[loc[0]][loc[1]]; //Get the piece code
+		
+		return null;
+	}
+	
+	
 	/** Return a board that is the result of playing the given move on the given board **/
 	public static byte[][] getResultBoard(int[] move, byte[][] board)
 	{
 		return new byte[0][0];
 	}
+	
+	
+	/* These methods generate possible positions for each piece, given the starting location */
+	/* All methods return int[], where destination squares are given in square notation */
+	
+	/** Generate pawn moves **/
+	public int[] getPawnMoves(int square)
+	{
+		byte piece = getPiece(square);
+		if(piece != Board.WHITE_PAWN || piece != Board.BLACK_PAWN)
+			return null;
+		
+		int[][] moves = new int[4][2];
+		
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		int numMoves = 0;
+		int[] moveLocs = new int[4];
+		
+		if(piece == Board.WHITE_PAWN)
+		{
+			moves[0][0] = x; //1 up
+			moves[0][1] = y+1;
+			
+			moves[1][0] = x; //2 up
+			moves[1][1] = y+2;
+			
+			moves[2][0] = x+1; //atack up right
+			moves[2][1] = y+1;
+			
+			moves[3][0] = x-1; //attack up left
+			moves[3][1] = y+1;
+		}
+		else if(piece == Board.BLACK_PAWN)
+		{
+			moves[0][0] = x; //1 down
+			moves[0][1] = y-1;
+			
+			moves[1][0] = x; //2 down
+			moves[1][1] = y-2;
+			
+			moves[2][0] = x+1; //atack down right
+			moves[2][1] = y-1;
+			
+			moves[3][0] = x-1; //attack down left
+			moves[3][1] = y-1;
+		}
+		
+		/* Eliminate moves that result in invalid destinations */
+		for(int i = 0; i < moves.length; i++)
+		{
+			int[] newLoc = moves[i];
+			
+			if(getPiece(newLoc) != Board.OOB)
+			{
+				numMoves++;
+				moveLocs[i] = i; //This is a valid move!
+			}
+			
+			moveLocs[i] = -1; //Invalid move, put in a -1	
+		}
+		
+		/* Put our valid moves in the final moves array */
+		int[] validMoves = new int[numMoves];
+		
+		for(int i = 0; i < validMoves.length; i++)
+		{
+			//validMoves[i] = 
+		}
+		
+		return null;
+	}
+	
+	/** Generate knight moves **/
+	public static int[] getKnightMoves(int square)
+	{
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		
+		return null;
+	}
+	
+	/** Generate bishop moves **/
+	public static int[] getBishopMoves(int square)
+	{
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		
+		return null;
+	}
+	
+	/** Generate rook moves **/
+	public static int[] getRookMoves(int square)
+	{
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		
+		return null;
+	}
+	
+	/** Generate queen moves **/
+	public static int[] getQueenMoves(int square)
+	{
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		
+		return null;
+	}
+	
+	/** Generate king moves **/
+	public static int[] getKingMoves(int square)
+	{
+		int[] pos = Board.numberToArray(square);
+		int x = pos[0];
+		int y = pos[1];
+		
+		return null;
+	}
+	
+	/* End of move generation methods */
+	
+	
+	/** Return the value at the given square **/
+	public byte getPiece(int square)
+	{
+		int[] location = Board.numberToArray(square);
+		return board[location[0]][location[1]];
+	}
+	
+	
+	/** Return the value at the given coordinates **/
+	public byte getPiece(int[] loc)
+	{
+		return board[loc[0]][loc[1]];
+	}
+	
 	
 	/** Take a full 12x12 array and trim it to an 8x8 array **/
 	public static byte[][] trimBoard(byte[][] board)

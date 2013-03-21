@@ -7,9 +7,14 @@ public class Main
 	
 	public static void main(String[] args)
 	{
-		board.getPawnMoves(8);
+		board.getKnightMoves(1);
 		
 		System.out.println("Done!");
 	}
 
 }
+
+/* To-Do list */
+
+//pawn moves - done
+//knight moves - done

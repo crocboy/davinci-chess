@@ -17,18 +17,18 @@ public class Board
 	public static final byte WHITE_QUEEN = 5;
 	public static final byte WHITE_KING = 6;
 	
-	public static final byte BLACK_PAWN = 7;
-	public static final byte BLACK_BISHOP = 8;
-	public static final byte BLACK_KNIGHT = 9;
-	public static final byte BLACK_ROOK = 10;
-	public static final byte BLACK_QUEEN = 11;
-	public static final byte BLACK_KING = 12;
+	public static final byte BLACK_PAWN = -1;
+	public static final byte BLACK_BISHOP = -2;
+	public static final byte BLACK_KNIGHT = -3;
+	public static final byte BLACK_ROOK = -4;
+	public static final byte BLACK_QUEEN = -5;
+	public static final byte BLACK_KING = -6;
 	
 	/** Empty square **/
 	public static final byte EMPTY = 0;
 	
 	/** Out of bounds square **/
-	public static final byte OOB = -1;
+	public static final byte OOB = 99;
 	
 	/** Used to convert Algebraic to Coordinates (and vice-versa) **/
 	public static final String[] LETTER_ARRAY = {"a","b","c","d","e","f","g","h"};
@@ -40,20 +40,24 @@ public class Board
 	/** Defines starting position.  (0,0) is a1 **/
 	public static final byte[][] init = 
 			
-		{{4,1,0,0,0,0,7,10},
-		{3,1,0,0,0,0,7,9},
-		{2,1,0,0,0,0,7,8},
-		{5,1,0,0,0,0,7,11},
-		{6,1,0,0,0,0,7,12},
-		{2,1,0,0,0,0,7,8},
-		{3,1,0,0,0,0,7,9},
-		{4,1,0,0,0,0,7,10}};
+	   {{4,1,0,0,0,0,-1,-4},
+		{3,1,0,0,0,0,-1,-3},
+		{2,1,0,0,0,0,-1,-2},
+		{5,1,0,4,0,0,-1,-5},
+		{6,1,0,0,0,0,-1,-6},
+		{2,1,0,0,0,0,-1,-2},
+		{3,1,0,0,0,0,-1,-3},
+		{4,1,0,0,0,0,-1,-4}};
 
 	
 	
 	/** Defines our trimmed and padded board **/
 	byte[][] fullBoard = new byte[12][12];
 	byte[][] board = new byte[8][8];
+	
+	
+	/** Private variables */
+	private long startTime;
 	
 	/** Public constructor: Empty **/
 	public Board()
@@ -75,7 +79,7 @@ public class Board
 	 * Because the piece location is given, you already know the origin. **/
 	public int[] getMoves(int square)
 	{
-		if(square == -1 || square == 0)
+		if(square == Board.OOB || square == Board.EMPTY)
 			return null;
 		
 		int[] loc = Board.numberToArray(square);
@@ -101,13 +105,13 @@ public class Board
 	/** Generate pawn moves **/
 	public int[] getPawnMoves(int square)
 	{
+		start();
 		byte piece = getPiece(square);
 		boolean isBlocked = false;
 		
 		if(piece != Board.WHITE_PAWN && piece != Board.BLACK_PAWN) //Invalid piece code
 			return null;
 		
-		int[][] allMoves = new int[4][2]; //Holds all possible moves 
 		ArrayList<Integer> moves = new ArrayList<Integer>(); //Holds all valid moves
 		
 		int[] pos = Board.numberToArray(square);
@@ -129,12 +133,12 @@ public class Board
 				}
 			}
 			
-			if(getPiece(x+1, y+1) != Board.EMPTY || getPiece(x+1, y+1) != Board.OOB)
+			if(getPiece(x+1, y+1) != Board.EMPTY && getPiece(x+1, y+1) != Board.OOB)
 			{
-				moves.add(square + 9); //atack up right
+				moves.add(square + 9); //attack up right
 			}
 			
-			if(getPiece(x-1, y+1) != Board.EMPTY || getPiece(x-1, y+1) != Board.OOB)
+			if(getPiece(x-1, y+1) != Board.EMPTY && getPiece(x-1, y+1) != Board.OOB)
 			{
 				moves.add(square + 7); //attack up left
 			}
@@ -153,39 +157,65 @@ public class Board
 				}
 			}
 			
-			if(getPiece(x+1, y-1) != Board.EMPTY || getPiece(x+1, y-1) != Board.OOB)
+			if(getPiece(x+1, y-1) != Board.EMPTY && getPiece(x+1, y-1) != Board.OOB)
 			{
 				moves.add(square - 9); //Down right attack
 			}
 			
-			if(getPiece(x-1, y-1) != Board.EMPTY || getPiece(x-1, y-1) != Board.OOB)
+			if(getPiece(x-1, y-1) != Board.EMPTY && getPiece(x-1, y-1) != Board.OOB)
 			{
 				moves.add(square - 7); //Down left attack
 			}
 		}
 		
-		/* Eliminate moves that result in invalid destinations */
-		/*for(int i = 0; i < allMoves.length; i++)
+		/* Remove all moves that result in landing on a white piece */
+		ArrayList<Integer> finalMoves = new ArrayList<Integer>(); //Holds all valid moves
+		for(int i : moves)
 		{
-			int[] newLoc = allMoves[i];
-			
-			if(getPiece(newLoc) != Board.OOB)
+			if(getPiece(i) <= 0) //The piece is either black or empty
 			{
-				moves.add(Board.arrayToNumber(newLoc));
+				finalMoves.add(i);
 			}
-		}*/
+		}
 		
-		return Board.toArray(moves);
+		end("Pawn moves");
+		return Board.toArray(finalMoves);
 	}
 	
 	/** Generate knight moves **/
-	public static int[] getKnightMoves(int square)
+	public int[] getKnightMoves(int square)
 	{
-		int[] pos = Board.numberToArray(square);
+		start();
+		if(getPiece(square) != Board.WHITE_KNIGHT && getPiece(square) != Board.BLACK_KNIGHT)
+			return null;
+		
+		int[] pos = numberToArray(square);
 		int x = pos[0];
 		int y = pos[1];
 		
-		return null;
+		ArrayList<int[]> allMoves = new ArrayList<int[]>();
+		ArrayList<Integer> moves = new ArrayList<Integer>();
+		
+		/* Add all the combinations of knight moves */
+		allMoves.add(new int[] {x+1,y-2});
+		allMoves.add(new int[] {x+1,y+2});
+		allMoves.add(new int[] {x+2,y+1});
+		allMoves.add(new int[] {x+2,y-1});
+		allMoves.add(new int[] {x-1,y+2});
+		allMoves.add(new int[] {x-1,y-2});
+		allMoves.add(new int[] {x-2,y+1});
+		allMoves.add(new int[] {x-2,y-1});
+		
+		/* Remove all moves that result in an OOB condition, or landing on a white piece */
+		for(int[] i : allMoves)
+		{
+			byte p = getPiece(i);
+			if(p != Board.OOB && p <= 0)
+				moves.add(arrayToNumber(i));
+		}
+		
+		end("Knight moves");
+		return toArray(moves);
 	}
 	
 	/** Generate bishop moves **/
@@ -199,13 +229,109 @@ public class Board
 	}
 	
 	/** Generate rook moves **/
-	public static int[] getRookMoves(int square)
+	public int[] getRookMoves(int square)
 	{
+		start();
 		int[] pos = Board.numberToArray(square);
 		int x = pos[0];
 		int y = pos[1];
 		
-		return null;
+		int count = 1;
+		
+		ArrayList<int[]> allMoves = new ArrayList<int[]>();
+		ArrayList<Integer> moves = new ArrayList<Integer>();
+		
+		/* Search in all four directions while adding moves, stop when you hit a piece/OOB */
+		byte piece = 0;
+		
+		while(piece != Board.OOB) //To the right
+		{
+			int[] newPos = {x+count,y};
+			piece = getPiece(newPos);
+			
+			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			{
+				allMoves.add(newPos);
+				break;
+			}
+			else if(piece == Board.EMPTY) //Empty square 
+			{
+				allMoves.add(newPos);
+			}
+			
+			count++;
+		}
+		
+		count = 1;
+		piece = 0;
+		while(piece != Board.OOB) //To the left
+		{
+			int[] newPos = {x-count,y};
+			piece = getPiece(newPos);
+			
+			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			{
+				allMoves.add(newPos);
+				break;
+			}
+			else if(piece == Board.EMPTY) //Empty square 
+			{
+				allMoves.add(newPos);
+			}
+			
+			count++;
+		}
+		
+		count = 1;
+		piece = 0;
+		while(piece != Board.OOB) //Down
+		{
+			int[] newPos = {x,y-count};
+			piece = getPiece(newPos);
+			
+			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			{
+				allMoves.add(newPos);
+				break;
+			}
+			else if(piece == Board.EMPTY) //Empty square 
+			{
+				allMoves.add(newPos);
+			}
+			
+			count++;
+		}
+		
+		count = 1;
+		piece = 0;
+		while(piece != Board.OOB) //Up
+		{
+			int[] newPos = {x,y+count};
+			piece = getPiece(newPos);
+			
+			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			{
+				allMoves.add(newPos);
+				break;
+			}
+			else if(piece == Board.EMPTY) //Empty square 
+			{
+				allMoves.add(newPos);
+			}
+			
+			count++;
+		}
+		
+		/* Remove all moves that result in an OOB condition */
+		for(int[] i : allMoves)
+		{
+			byte p = getPiece(i);
+			if(p != Board.OOB && p <= 0)
+				moves.add(arrayToNumber(i));
+		}
+		
+		end("Rook moves");
+		return toArray(moves);
 	}
 	
 	/** Generate queen moves **/
@@ -335,8 +461,11 @@ public class Board
     }
     
     /** Convert an array coordinate (4,1) to it's single number equivalent (12)**/
-    public static int arrayToNumber(int[] coord)
+    public static int arrayToNumber(int... coord)
     {
+    	if(coord.length != 2)
+    		return -1;
+    	
     	int square = coord[1] * 8;
     	square += coord[0];
     	
@@ -353,5 +482,17 @@ public class Board
     		newData[i] = data.get(i);
     	
     	return newData;
+    }
+    
+    /** Record start time **/
+    public void start()
+    {
+    	startTime = System.currentTimeMillis();
+    }
+    
+    /** Print end time **/
+    public void end(String s)
+    {
+    	System.out.println(s + " time: " + String.valueOf(System.currentTimeMillis() - startTime));
     }
 }

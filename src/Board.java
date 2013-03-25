@@ -75,7 +75,7 @@ public class Board
 	{
 		int[][] moves = getAllPossibleMoves();
 		Random r = new Random();
-		int num = 0;//r.nextInt(moves.length);
+		int num = r.nextInt(moves.length);
 		
 		int[] start = numberToArray(moves[num][0]);
 		int[] end = numberToArray(moves[num][1]);
@@ -183,7 +183,7 @@ public class Board
 			int[] moves = getMoves(square);
 			for(int move : moves)
 			{
-				if(!causesBadCheck(new int[] {square, move})) //Make sure it doesn't cause check 
+				if(!causesCheck(new int[] {square, move}, this.side)) //Make sure it doesn't cause check 
 				{
 					String s = moveToString(square,move);
 					System.out.println(s);
@@ -914,7 +914,7 @@ public class Board
 		/* Add all the combinations of king moves */
 		allMoves.add(new int[] {x,y+1});
 		allMoves.add(new int[] {x+1,y+1});
-		allMoves.add(new int[] {x+1,y}); //
+		allMoves.add(new int[] {x+1,y}); //CHANGES FOR SOME REASON
 		allMoves.add(new int[] {x+1,y-1});
 		allMoves.add(new int[] {x,y-1});
 		allMoves.add(new int[] {x-1,y-1});
@@ -983,211 +983,411 @@ public class Board
 	/* End of move generation methods */
 	
 	
-	/** Return true if the given moves will cause check for the computer's side (BAD) **/
-	public boolean causesBadCheck(int[] move)
+	/** Return true if the given move will cause check for the given side**/
+	public boolean causesCheck(int[] move, int newSide)
 	{
 		byte[][] tempBoard = clone(board); //Store our current board for use later
 		
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
 		playMove(moveString);
 		
-		int king = getKingLocation(this.side);
+		int king = getKingLocation(newSide);
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
 		int y = kingPos[1];
 		
-		/* Search horizontally in all directions */
-		byte piece = 0;
-		int count = 1;
-		while(piece != Board.OOB) //To the right
+		if(newSide == Board.SIDE_BLACK) //Search for moves that cause check for black pieces
 		{
-			int[] newPos = {x+count,y};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			/* Search horizontally in all directions */
+			byte piece = 0;
+			int count = 1;
+			while(piece != Board.OOB) //To the right
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+				int[] newPos = {x+count,y};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //To the left
-		{
-			int[] newPos = {x-count,y};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //To the left
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+				int[] newPos = {x-count,y};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Down
-		{
-			int[] newPos = {x,y-count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+				int[] newPos = {x,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Up
-		{
-			int[] newPos = {x,y+count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+				int[] newPos = {x,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		/* Search diagonally */
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Down right
-		{
-			int[] newPos = {x-count,y-count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			/* Search diagonally */
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down right
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+				int[] newPos = {x-count,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Down right
-		{
-			int[] newPos = {x+count,y-count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down right
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+				int[] newPos = {x+count,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Up-left
-		{
-			int[] newPos = {x-count,y+count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up-left
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+				int[] newPos = {x-count,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
-		}
-		
-		count = 1;
-		piece = 0;
-		while(piece != Board.OOB) //Up-right
-		{
-			int[] newPos = {x+count,y+count};
-			piece = getPiece(newPos);
-			
-			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up-right
 			{
-				if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+				int[] newPos = {x+count,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
-					this.board = clone(tempBoard);
-					this.fullBoard = clone(padBoard(tempBoard));
-					return true;
+					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
 				}
-				break;
+				
+				count++;
 			}
 			
-			count++;
+			/* Search for enemy knights */
+			if(getPiece(x+1,y+2) == Board.WHITE_KNIGHT || getPiece(x+1,y-2) == Board.WHITE_KNIGHT || getPiece(x+2,y+1) == Board.WHITE_KNIGHT || getPiece(x+2,y-1) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-2,y+1) == Board.WHITE_KNIGHT || getPiece(x-2,y-1) == Board.WHITE_KNIGHT)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
+			
+			/* Search for enemy pawns */
+			if(getPiece(x-1,y-1) == Board.WHITE_PAWN || getPiece(x+1,y-1) == Board.WHITE_PAWN)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
+			
+			/* Search for enemy king */
+			if(getPiece(x-1,y-1) == Board.WHITE_KING || getPiece(x+1,y-1) == Board.WHITE_KING || getPiece(x,y-1) == Board.WHITE_KING  || getPiece(x+1,y) == Board.WHITE_KING || getPiece(x-1,y) == Board.WHITE_KING || getPiece(x+1,y+1) == Board.WHITE_KING || getPiece(x,y+1) == Board.WHITE_KING || getPiece(x-1,y+1) == Board.WHITE_KING)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
 		}
 		
-		/* Search for enemy knights */
-		if(getPiece(x+1,y+2) == Board.WHITE_KNIGHT || getPiece(x+1,y-2) == Board.WHITE_KNIGHT || getPiece(x+2,y+1) == Board.WHITE_KNIGHT || getPiece(x+2,y-1) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-2,y+1) == Board.WHITE_KNIGHT || getPiece(x-2,y-1) == Board.WHITE_KNIGHT)
+		else if(newSide == Board.SIDE_BLACK) //Search for moves that cause check for white pieces
 		{
-			this.board = clone(tempBoard);
-			this.fullBoard = clone(padBoard(tempBoard));
-			return true;
-		}
-		
-		/* Search for enemy pawns */
-		if(getPiece(x-1,y-1) == Board.WHITE_PAWN || getPiece(x+1,y-1) == Board.WHITE_PAWN)
-		{
-			this.board = clone(tempBoard);
-			this.fullBoard = clone(padBoard(tempBoard));
-			return true;
-		}
-		
-		/* Search for enemy king */
-		if(getPiece(x-1,y-1) == Board.WHITE_KING || getPiece(x+1,y-1) == Board.WHITE_KING || getPiece(x,y-1) == Board.WHITE_KING  || getPiece(x+1,y) == Board.WHITE_KING || getPiece(x-1,y) == Board.WHITE_KING || getPiece(x+1,y+1) == Board.WHITE_KING || getPiece(x,y+1) == Board.WHITE_KING || getPiece(x-1,y+1) == Board.WHITE_KING)
-		{
-			this.board = clone(tempBoard);
-			this.fullBoard = clone(padBoard(tempBoard));
-			return true;
+			/* Search horizontally in all directions */
+			byte piece = 0;
+			int count = 1;
+			while(piece != Board.OOB) //To the right
+			{
+				int[] newPos = {x+count,y};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //To the left
+			{
+				int[] newPos = {x-count,y};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down
+			{
+				int[] newPos = {x,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up
+			{
+				int[] newPos = {x,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			/* Search diagonally */
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down right
+			{
+				int[] newPos = {x-count,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Down right
+			{
+				int[] newPos = {x+count,y-count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up-left
+			{
+				int[] newPos = {x-count,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			count = 1;
+			piece = 0;
+			while(piece != Board.OOB) //Up-right
+			{
+				int[] newPos = {x+count,y+count};
+				piece = getPiece(newPos);
+				
+				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
+				{
+					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
+					{
+						this.board = clone(tempBoard);
+						this.fullBoard = clone(padBoard(tempBoard));
+						return true;
+					}
+					break;
+				}
+				
+				count++;
+			}
+			
+			/* Search for enemy knights */
+			if(getPiece(x+1,y+2) == Board.BLACK_KNIGHT || getPiece(x+1,y-2) == Board.BLACK_KNIGHT || getPiece(x+2,y+1) == Board.BLACK_KNIGHT || getPiece(x+2,y-1) == Board.BLACK_KNIGHT || getPiece(x-1,y-2) == Board.BLACK_KNIGHT || getPiece(x-1,y-2) == Board.BLACK_KNIGHT || getPiece(x-2,y+1) == Board.BLACK_KNIGHT || getPiece(x-2,y-1) == Board.BLACK_KNIGHT)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
+			
+			/* Search for enemy pawns */
+			if(getPiece(x-1,y+1) == Board.BLACK_PAWN || getPiece(x+1,y+1) == Board.BLACK_PAWN)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
+			
+			/* Search for enemy king */
+			if(getPiece(x-1,y-1) == Board.BLACK_KING || getPiece(x+1,y-1) == Board.BLACK_KING || getPiece(x,y-1) == Board.BLACK_KING  || getPiece(x+1,y) == Board.BLACK_KING || getPiece(x-1,y) == Board.BLACK_KING || getPiece(x+1,y+1) == Board.BLACK_KING || getPiece(x,y+1) == Board.BLACK_KING || getPiece(x-1,y+1) == Board.BLACK_KING)
+			{
+				this.board = clone(tempBoard);
+				this.fullBoard = clone(padBoard(tempBoard));
+				return true;
+			}
 		}
 		
 		/* Restore our original board */
@@ -1398,6 +1598,13 @@ public class Board
     		}
     	}
     	return newData;
+    }
+    
+    
+    /** Return a copy of the board **/
+    public byte[][] copyBoard()
+    {
+    	return clone(board);
     }
     
     /** Print end time **/

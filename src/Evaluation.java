@@ -4,7 +4,7 @@ public class Evaluation {
 	/** The user-friendly version of evaulate(int[] move, byte[][] board) **/
 	public static int evaluate(int[] move)
 	{
-		return evaluate(move, Main.board.board);
+		return evaluate(move, Main.board.gameBoard);
 	}
 	
 	

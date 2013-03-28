@@ -93,7 +93,7 @@ public class Main
             	
             	if(hasMoved == false)
             	{
-            		board.side = Board.SIDE_BLACK;
+            		board.gameSide = Board.SIDE_BLACK;
             		hasMoved = true;
             	}
             	
@@ -103,7 +103,7 @@ public class Main
 					if(mstart>-1) 
 					{
 						String moves = cmd.substring(mstart+5);
-						board.playMoves(moves);
+						board.gameBoard = Board.playMoves(moves);
 					}
 				} 
 				else 
@@ -139,7 +139,7 @@ public class Main
          else if(cmd.startsWith("go")) {
 				
         	 	if(!hasMoved)
-        	 		board.side = Board.SIDE_WHITE;
+        	 		board.gameSide = Board.SIDE_WHITE;
         	 	
         	 	String bestMove = board.getBestMove();
 				System.out.println("bestmove "+ bestMove);

@@ -40,7 +40,7 @@ public class Board
 	
 	
 	/* These are instance variables */
-	public int side = Board.SIDE_BLACK;
+	public int gameSide = Board.SIDE_BLACK;
 	
 	/** Defines starting position.  (0,0) is a1 **/
 	public static final byte[][] init = 
@@ -57,8 +57,7 @@ public class Board
 	
 	
 	/** Defines our trimmed and padded board **/
-	byte[][] fullBoard = new byte[12][12];
-	byte[][] board = new byte[8][8];
+	byte[][] gameBoard = new byte[8][8];
 	
 	
 	/** Private variables */
@@ -67,13 +66,12 @@ public class Board
 	/** Public constructor: Empty **/
 	public Board()
 	{
-		this.board = clone(init);
-		this.fullBoard = Board.padBoard(clone(init));
+		this.gameBoard = clone(init);
 	}
 	
 	public String getBestMove()
 	{
-		int[][] moves = getAllPossibleMoves();
+		int[][] moves = getAllPossibleMoves(gameSide, gameBoard);
 		Random r = new Random();
 		int num = r.nextInt(moves.length);
 		
@@ -86,10 +84,9 @@ public class Board
 	
 	
 	/** Play multiple moves **/
-	public void playMoves(String s)
+	public static byte[][] playMoves(String s)
 	{
-		board = clone(init);
-		fullBoard = padBoard(clone(init));
+		byte[][] board = clone(init);
 		
 		s = s.trim();
 		
@@ -99,27 +96,30 @@ public class Board
 			
 			for(String move : moves)
 			{
-				playMove(move);
+				board = playMove(move, board);
 			}
 			System.out.print("");
+			
+			return board;
 		}
 		
 		else //Only one move
-			playMove(s);
+			return playMove(s, board);
+
 		
 	}
 	
 	/** Play a single move **/
-	public void playMove(String s)
+	public static byte[][] playMove(String s, byte[][] board)
 	{
-		if(s.equals("e1g1") && this.side == Board.SIDE_BLACK) //White castling!
+		/*if(s.equals("e1g1") && Main.board.side == Board.SIDE_BLACK) //White castling!
 		{
 			board[5][0] = Board.WHITE_ROOK;
 			board[6][0] = Board.WHITE_KING;
 			board[4][0] = Board.EMPTY;
 			board[7][0] = Board.EMPTY;
 			return;
-		}
+		}*/
 		
 		if(s.length() == 5) //Pawn promotion
 		{
@@ -127,12 +127,12 @@ public class Board
 			int[] start = numberToArray(move[0]);
 			int[] end = numberToArray(move[1]);
 			
-			byte piece = getPiece(move[0]);
+			byte piece = getPiece(board,move[0]);
 			
 			if(piece == Board.WHITE_PAWN || piece == Board.BLACK_PAWN) //Check for pawn promotion 
 			{
-				if(promotePawn(start, end, piece)) //If the pawn was promoted, return because we're done
-					return;
+				if(promotePawn(start, end, piece, board)) //If the pawn was promoted, return because we're done
+					return board;
 			}
 		}
 		else if(s.length() == 4) //Regular move
@@ -141,21 +141,21 @@ public class Board
 			int[] start = numberToArray(move[0]);
 			int[] end = numberToArray(move[1]);
 			
-			byte piece = getPiece(move[0]);
+			byte piece = getPiece(board,move[0]);
 			
 			board[start[0]][start[1]] = Board.EMPTY;
 			board[end[0]][end[1]] = piece;
-			
-			fullBoard = Board.padBoard(clone(board));
 		}
+		
+		return board;
 	}
 	
 	
 	/** Checks if the given side is in check **/
-	public boolean isCheck(int checkSide)
+	public boolean isCheck(int side, byte[][] board)
 	{
-		int[][] moves = getAllPossibleMoves(checkSide);
-		int kingSquare = getKingLocation(this.side);
+		int[][] moves = getAllPossibleMoves(side, board);
+		int kingSquare = getKingLocation(side, board);
 		
 		for(int[] pos : moves) //Look through all moves, see if our king's square is one of the destinations
 		{
@@ -169,21 +169,21 @@ public class Board
 	
 	
 	/** Return a list of all possible moves, in square-notation **/
-	public int[][] getAllPossibleMoves()
+	public int[][] getAllPossibleMoves(int side, byte[][] board)
 	{
 		start();
 		ArrayList<int[]> allMoves = new ArrayList<int[]>();
 		
 		/* Find the locations of all white pieces */
-		int[] locs = getLocations();
+		int[] locs = getLocations(side, board);
 		
 		/* Add all moves for all pieces */
 		for(int square : locs)
 		{
-			int[] moves = getMoves(square);
+			int[] moves = getMoves(square, board);
 			for(int move : moves)
 			{
-				if(!causesCheck(new int[] {square, move}, this.side)) //Make sure it doesn't cause check 
+				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
 				{
 					String s = moveToString(square,move);
 					System.out.println(s);
@@ -198,62 +198,47 @@ public class Board
 	}
 	
 	
-	/** Return all moves for the piece on the given square.
-	 * Moves are given as one number, the destination square.
-	 * Because the piece location is given, you already know the origin. **/
-	public int[][] getAllPossibleMoves(int newSide)
-	{
-		int tempSide = this.side; //Store our side 
-		this.side = newSide;
-		
-		int[][] moves = getAllPossibleMoves();
-		
-		this.side = tempSide; //Restore our old side and return our new moves
-		return moves;
-	}
-	
-	
 	/** Return all moves for the given side **/
 	/** Return all moves for the piece on the given square.
 	 * Moves are given as one number, the destination square.
 	 * Because the piece location is given, you already know the origin. **/
-	public int[] getMoves(int square)
+	public int[] getMoves(int square, byte[][] board)
 	{
-		if(getPiece(square) == Board.OOB || getPiece(square) == Board.EMPTY)
+		if(getPiece(board,square) == Board.OOB || getPiece(board,square) == Board.EMPTY)
 			return null;
 		
 		ArrayList<Integer> allMoves = new ArrayList<Integer>();
 		
-		byte piece = getPiece(square); //Get the piece code
+		byte piece = getPiece(board,square); //Get the piece code
 		
 		/* Return the moves for the appropriate piece */
 		switch(piece)
 		{
 			case Board.WHITE_PAWN:
-				return getPawnMoves(square);
+				return getPawnMoves(square, board);
 			case Board.WHITE_KNIGHT:
-				return getKnightMoves(square);
+				return getKnightMoves(square, board);
 			case Board.WHITE_BISHOP:
-				return getBishopMoves(square);
+				return getBishopMoves(square, board);
 			case Board.WHITE_ROOK:
-				return getRookMoves(square);
+				return getRookMoves(square, board);
 			case Board.WHITE_QUEEN:
-				return getQueenMoves(square);
+				return getQueenMoves(square, board);
 			case Board.WHITE_KING:
-				return getKingMoves(square);
+				return getKingMoves(square, board);
 				
 			case Board.BLACK_PAWN:
-				return getPawnMoves(square);
+				return getPawnMoves(square, board);
 			case Board.BLACK_KNIGHT:
-				return getKnightMoves(square);
+				return getKnightMoves(square, board);
 			case Board.BLACK_BISHOP:
-				return getBishopMoves(square);
+				return getBishopMoves(square, board);
 			case Board.BLACK_ROOK:
-				return getRookMoves(square);
+				return getRookMoves(square, board);
 			case Board.BLACK_QUEEN:
-				return getQueenMoves(square);
+				return getQueenMoves(square, board);
 			case Board.BLACK_KING:
-				return getKingMoves(square);
+				return getKingMoves(square, board);
 		}
 		
 		return toArray(allMoves);
@@ -263,8 +248,7 @@ public class Board
 	/** Start a new game **/
 	public void newGame()
 	{
-		this.board = clone(init);
-		this.fullBoard = Board.padBoard(clone(init));
+		this.gameBoard = clone(init);
 	}
 	
 	
@@ -276,7 +260,7 @@ public class Board
 	
 	
 	/** Get locations of all pieces on our side **/
-	public int[] getLocations()
+	public int[] getLocations(int side, byte[][] board)
 	{
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		
@@ -306,13 +290,18 @@ public class Board
 	/* All methods return int[], where destination squares are given in square notation */
 	
 	/** Generate pawn moves **/
-	public int[] getPawnMoves(int square)
+	public int[] getPawnMoves(int square, byte[][] board)
 	{
 		start();
-		byte piece = getPiece(square);
+		byte piece = getPiece(board,square);
 		boolean isBlocked = false;
 		
-		if(piece != Board.WHITE_PAWN && piece != Board.BLACK_PAWN) //Invalid piece code
+		int side = 0;
+		if(piece == Board.BLACK_PAWN)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_PAWN)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
 		
 		ArrayList<Integer> moves = new ArrayList<Integer>(); //Holds all valid moves
@@ -324,49 +313,49 @@ public class Board
 		
 		if(piece == Board.WHITE_PAWN)
 		{
-			isBlocked = !(getPiece(square+8) == Board.EMPTY);
+			isBlocked = !(getPiece(board,square+8) == Board.EMPTY);
 			
 			if(!isBlocked) //Only add forward moves if it's not blocked
 			{
 				moves.add(square+8); //Up one
 				
-				if(y == 1 && getPiece(square + 16) == Board.EMPTY)
+				if(y == 1 && getPiece(board,square + 16) == Board.EMPTY)
 				{
 					moves.add(square+16); //Up 2
 				}
 			}
 			
-			if(getPiece(x+1, y+1) != Board.EMPTY && getPiece(x+1, y+1) != Board.OOB)
+			if(getPiece(board,x+1, y+1) != Board.EMPTY && getPiece(board,x+1, y+1) != Board.OOB)
 			{
 				moves.add(square + 9); //attack up right
 			}
 			
-			if(getPiece(x-1, y+1) != Board.EMPTY && getPiece(x-1, y+1) != Board.OOB)
+			if(getPiece(board,x-1, y+1) != Board.EMPTY && getPiece(board,x-1, y+1) != Board.OOB)
 			{
 				moves.add(square + 7); //attack up left
 			}
 		}
 		else if(piece == Board.BLACK_PAWN) 
 		{
-			isBlocked = !(getPiece(square-8) == Board.EMPTY);
+			isBlocked = !(getPiece(board,square-8) == Board.EMPTY);
 			
 			if(!isBlocked) //Only add forward moves if it's not blocked
 			{
 				moves.add(square - 8); //1 down
 				
-				if(y == 6 && getPiece(square - 16) == Board.EMPTY)
+				if(y == 6 && getPiece(board,square - 16) == Board.EMPTY)
 				{
 					moves.add(square - 16); //2 down
 				}
 			}
 			
-			byte p = getPiece(x+1, y-1);
+			byte p = getPiece(board,x+1, y-1);
 			if(p != Board.EMPTY && p != Board.OOB)
 			{
 				moves.add(square - 7); //Down left attack
 			}
 			
-			p = getPiece(x-1, y-1);
+			p = getPiece(board,x-1, y-1);
 			if(p != Board.EMPTY && p != Board.OOB)
 			{
 				moves.add(square - 9); //Down right attack
@@ -379,14 +368,14 @@ public class Board
 		{
 			if(side == Board.SIDE_BLACK)
 			{
-				if(getPiece(i) >= 0) //The piece is either white or empty
+				if(getPiece(board,i) >= 0) //The piece is either white or empty
 				{
 					finalMoves.add(i);
 				}
 			}
 			else if(side == Board.SIDE_WHITE)
 			{
-				if(getPiece(i) <= 0) //The piece is either black or empty
+				if(getPiece(board,i) <= 0) //The piece is either black or empty
 				{
 					finalMoves.add(i);
 				}
@@ -399,10 +388,18 @@ public class Board
 	}
 	
 	/** Generate knight moves **/
-	public int[] getKnightMoves(int square)
+	public int[] getKnightMoves(int square, byte[][] board)
 	{
 		start();
-		if(getPiece(square) != Board.WHITE_KNIGHT && getPiece(square) != Board.BLACK_KNIGHT)
+		
+		byte piece = getPiece(board,square);
+		
+		int side = 0;
+		if(piece == Board.BLACK_KNIGHT)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_KNIGHT)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
 		
 		int[] pos = numberToArray(square);
@@ -425,10 +422,10 @@ public class Board
 		/* Remove all moves that result in an OOB condition, or landing on a white piece */
 		for(int[] i : allMoves)
 		{
-			byte p = getPiece(i);
+			byte p = getPiece(board,i);
 			if(side == Board.SIDE_BLACK)
 			{
-				if(getPiece(i) >= 0) //The piece is either white or empty
+				if(getPiece(board,i) >= 0) //The piece is either white or empty
 				{
 					if(p != Board.OOB && p >= 0)
 						moves.add(arrayToNumber(i));
@@ -436,7 +433,7 @@ public class Board
 			}
 			else if(side == Board.SIDE_WHITE)
 			{
-				if(getPiece(i) <= 0) //The piece is either black or empty
+				if(getPiece(board,i) <= 0) //The piece is either black or empty
 				{
 					if(p != Board.OOB && p <= 0)
 						moves.add(arrayToNumber(i));
@@ -450,10 +447,18 @@ public class Board
 	}
 	
 	/** Generate bishop moves **/
-	public int[] getBishopMoves(int square)
+	public int[] getBishopMoves(int square, byte[][] board)
 	{
-		if(getPiece(square) != Board.WHITE_BISHOP && getPiece(square) != Board.BLACK_BISHOP)
+		byte piece = getPiece(board,square);
+		
+		int side = 0;
+		if(piece == Board.BLACK_BISHOP)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_BISHOP)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
+		
 		start();
 		int[] pos = Board.numberToArray(square);
 		int x = pos[0];
@@ -465,12 +470,12 @@ public class Board
 		ArrayList<Integer> moves = new ArrayList<Integer>();
 		
 		/* Search in all four directions while adding moves, stop when you hit a piece/OOB */
-		byte piece = 0;
+		piece = 0;
 		
 		while(piece != Board.OOB) //To the right-up
 		{
 			int[] newPos = {x+count,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -490,7 +495,7 @@ public class Board
 		while(piece != Board.OOB) //To the left-up
 		{
 			int[] newPos = {x-count,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -510,7 +515,7 @@ public class Board
 		while(piece != Board.OOB) //Right-Down
 		{
 			int[] newPos = {x+count,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -530,7 +535,7 @@ public class Board
 		while(piece != Board.OOB) //Left-down
 		{
 			int[] newPos = {x-count,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -548,10 +553,10 @@ public class Board
 		/* Remove all moves that result in an OOB condition */
 		for(int[] i : allMoves)
 		{
-			byte p = getPiece(i);
+			byte p = getPiece(board,i);
 			if(side == Board.SIDE_BLACK)
 			{
-				if(getPiece(i) >= 0) //The piece is either white or empty
+				if(getPiece(board,i) >= 0) //The piece is either white or empty
 				{
 					if(p != Board.OOB && p >= 0)
 						moves.add(arrayToNumber(i));
@@ -559,7 +564,7 @@ public class Board
 			}
 			else if(side == Board.SIDE_WHITE)
 			{
-				if(getPiece(i) <= 0) //The piece is either black or empty
+				if(getPiece(board,i) <= 0) //The piece is either black or empty
 				{
 					if(p != Board.OOB && p <= 0)
 						moves.add(arrayToNumber(i));
@@ -572,9 +577,16 @@ public class Board
 	}
 	
 	/** Generate rook moves **/
-	public int[] getRookMoves(int square)
+	public int[] getRookMoves(int square, byte[][] board)
 	{
-		if(getPiece(square) != Board.WHITE_ROOK && getPiece(square) != Board.BLACK_ROOK)
+		byte piece = getPiece(board, square);
+		
+		int side = 0;
+		if(piece == Board.BLACK_ROOK)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_ROOK)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
 		
 		start();
@@ -588,12 +600,12 @@ public class Board
 		ArrayList<Integer> moves = new ArrayList<Integer>();
 		
 		/* Search in all four directions while adding moves, stop when you hit a piece/OOB */
-		byte piece = 0;
+		piece = 0;
 		
 		while(piece != Board.OOB) //To the right
 		{
 			int[] newPos = {x+count,y};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -613,7 +625,7 @@ public class Board
 		while(piece != Board.OOB) //To the left
 		{
 			int[] newPos = {x-count,y};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -633,7 +645,7 @@ public class Board
 		while(piece != Board.OOB) //Down
 		{
 			int[] newPos = {x,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -653,7 +665,7 @@ public class Board
 		while(piece != Board.OOB) //Up
 		{
 			int[] newPos = {x,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -671,7 +683,7 @@ public class Board
 		/* Remove all moves that result in an OOB condition */
 		for(int[] i : allMoves)
 		{
-			byte p = getPiece(i);
+			byte p = getPiece(board,i);
 			if(side == Board.SIDE_BLACK)
 			{
 				if(p >= 0) //The piece is either white or empty
@@ -682,7 +694,7 @@ public class Board
 			}
 			else if(side == Board.SIDE_WHITE)
 			{
-				if(getPiece(i) <= 0) //The piece is either black or empty
+				if(getPiece(board,i) <= 0) //The piece is either black or empty
 				{
 					if(p != Board.OOB && p <= 0)
 						moves.add(arrayToNumber(i));
@@ -695,10 +707,18 @@ public class Board
 	}
 	
 	/** Generate queen moves **/
-	public int[] getQueenMoves(int square)
+	public int[] getQueenMoves(int square, byte[][] board)
 	{
-		if(getPiece(square) != Board.WHITE_QUEEN && getPiece(square) != Board.BLACK_QUEEN)
+		byte piece = getPiece(board,square);
+		
+		int side = 0;
+		if(piece == Board.BLACK_QUEEN)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_QUEEN)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
+		
 		start();
 		int[] pos = Board.numberToArray(square);
 		int x = pos[0];
@@ -711,11 +731,11 @@ public class Board
 		
 		/* Search in all four horizontal directions */
 
-		byte piece = 0;
+		piece = 0;
 		while(piece != Board.OOB) //To the right
 		{
 			int[] newPos = {x+count,y};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -735,7 +755,7 @@ public class Board
 		while(piece != Board.OOB) //To the left
 		{
 			int[] newPos = {x-count,y};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -755,7 +775,7 @@ public class Board
 		while(piece != Board.OOB) //Down
 		{
 			int[] newPos = {x,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -775,7 +795,7 @@ public class Board
 		while(piece != Board.OOB) //Up
 		{
 			int[] newPos = {x,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -796,7 +816,7 @@ public class Board
 		while(piece != Board.OOB) //To the right-up
 		{
 			int[] newPos = {x+count,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -816,7 +836,7 @@ public class Board
 		while(piece != Board.OOB) //To the left-up
 		{
 			int[] newPos = {x-count,y+count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -836,7 +856,7 @@ public class Board
 		while(piece != Board.OOB) //Right-Down
 		{
 			int[] newPos = {x+count,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -856,7 +876,7 @@ public class Board
 		while(piece != Board.OOB) //Left-down
 		{
 			int[] newPos = {x-count,y-count};
-			piece = getPiece(newPos);
+			piece = getPiece(board,newPos);
 			
 			if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 			{
@@ -874,7 +894,7 @@ public class Board
 		/* Remove all moves that result in an OOB condition */
 		for(int[] i : allMoves)
 		{
-			byte p = getPiece(i);
+			byte p = getPiece(board,i);
 			if(side == Board.SIDE_BLACK)
 			{
 				if(p >= 0) //The piece is either white or empty
@@ -898,10 +918,18 @@ public class Board
 	}
 	
 	/** Generate king moves **/
-	public int[] getKingMoves(int square)
+	public int[] getKingMoves(int square, byte[][] board)
 	{
 		start();
-		if(getPiece(square) != Board.WHITE_KING && getPiece(square) != Board.BLACK_KING)
+		
+		byte piece = getPiece(board, square);
+		
+		int side = 0;
+		if(piece == Board.BLACK_KING)
+			side = Board.SIDE_BLACK;
+		else if(piece == Board.WHITE_KING)
+			side = Board.SIDE_WHITE;
+		else
 			return null;
 		
 		int[] pos = numberToArray(square);
@@ -924,10 +952,10 @@ public class Board
 		/* Remove all moves that result in an OOB condition, or landing on a white piece */
 		for(int[] i : allMoves)
 		{
-			byte p = getPiece(i);
+			byte p = getPiece(board,i);
 			if(side == Board.SIDE_BLACK)
 			{
-				if(getPiece(i) >= 0) //The piece is either white or empty
+				if(getPiece(board,i) >= 0) //The piece is either white or empty
 				{
 					if(p != Board.OOB && p >= 0)
 						moves.add(arrayToNumber(i));
@@ -935,7 +963,7 @@ public class Board
 			}
 			else if(side == Board.SIDE_WHITE)
 			{
-				if(getPiece(i) <= 0) //The piece is either black or empty
+				if(getPiece(board,i) <= 0) //The piece is either black or empty
 				{
 					if(p != Board.OOB && p <= 0)
 						moves.add(arrayToNumber(i));
@@ -949,7 +977,7 @@ public class Board
 	
 	
 	/** Promote pawns if need be, return a boolean indicating if the pawn was actually promoted **/
-	public boolean promotePawn(int[] start, int[] end, byte piece)
+	public static boolean promotePawn(int[] start, int[] end, byte piece, byte[][] board)
 	{
 		if(piece == Board.BLACK_PAWN)
 		{
@@ -959,8 +987,6 @@ public class Board
 			{
 				board[start[0]][start[1]] = Board.EMPTY;
 				board[end[0]][end[1]] = Board.BLACK_QUEEN;
-				
-				fullBoard = Board.padBoard(clone(board));
 				return true;
 			}
 		}
@@ -972,8 +998,6 @@ public class Board
 			{
 				board[start[0]][start[1]] = Board.EMPTY;
 				board[end[0]][end[1]] = Board.WHITE_QUEEN;
-				
-				fullBoard = Board.padBoard(clone(board));
 				return true;
 			}
 		}
@@ -984,14 +1008,14 @@ public class Board
 	
 	
 	/** Return true if the given move will cause check for the given side**/
-	public boolean causesCheck(int[] move, int newSide)
+	public boolean causesCheck(int[] move, int newSide, byte[][] board)
 	{
 		byte[][] tempBoard = clone(board); //Store our current board for use later
 		
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
-		playMove(moveString);
+		playMove(moveString, board);
 		
-		int king = getKingLocation(newSide);
+		int king = getKingLocation(newSide, board);
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
 		int y = kingPos[1];
@@ -1004,14 +1028,12 @@ public class Board
 			while(piece != Board.OOB) //To the right
 			{
 				int[] newPos = {x+count,y};
-				piece = getPiece(newPos);
+				piece = getPiece(board, newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1025,14 +1047,12 @@ public class Board
 			while(piece != Board.OOB) //To the left
 			{
 				int[] newPos = {x-count,y};
-				piece = getPiece(newPos);
+				piece = getPiece(board, newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1046,14 +1066,12 @@ public class Board
 			while(piece != Board.OOB) //Down
 			{
 				int[] newPos = {x,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1067,14 +1085,12 @@ public class Board
 			while(piece != Board.OOB) //Up
 			{
 				int[] newPos = {x,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1089,14 +1105,12 @@ public class Board
 			while(piece != Board.OOB) //Down right
 			{
 				int[] newPos = {x-count,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1110,14 +1124,12 @@ public class Board
 			while(piece != Board.OOB) //Down right
 			{
 				int[] newPos = {x+count,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1131,14 +1143,12 @@ public class Board
 			while(piece != Board.OOB) //Up-left
 			{
 				int[] newPos = {x-count,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1152,14 +1162,12 @@ public class Board
 			while(piece != Board.OOB) //Up-right
 			{
 				int[] newPos = {x+count,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.WHITE_QUEEN || piece == Board.WHITE_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1169,26 +1177,20 @@ public class Board
 			}
 			
 			/* Search for enemy knights */
-			if(getPiece(x+1,y+2) == Board.WHITE_KNIGHT || getPiece(x+1,y-2) == Board.WHITE_KNIGHT || getPiece(x+2,y+1) == Board.WHITE_KNIGHT || getPiece(x+2,y-1) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-1,y-2) == Board.WHITE_KNIGHT || getPiece(x-2,y+1) == Board.WHITE_KNIGHT || getPiece(x-2,y-1) == Board.WHITE_KNIGHT)
+			if(getPiece(board,x+1,y+2) == Board.WHITE_KNIGHT || getPiece(board,x+1,y-2) == Board.WHITE_KNIGHT || getPiece(board,x+2,y+1) == Board.WHITE_KNIGHT || getPiece(board,x+2,y-1) == Board.WHITE_KNIGHT || getPiece(board,x-1,y-2) == Board.WHITE_KNIGHT || getPiece(board,x-1,y-2) == Board.WHITE_KNIGHT || getPiece(board,x-2,y+1) == Board.WHITE_KNIGHT || getPiece(board,x-2,y-1) == Board.WHITE_KNIGHT)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 			
 			/* Search for enemy pawns */
-			if(getPiece(x-1,y-1) == Board.WHITE_PAWN || getPiece(x+1,y-1) == Board.WHITE_PAWN)
+			if(getPiece(board,x-1,y-1) == Board.WHITE_PAWN || getPiece(board,x+1,y-1) == Board.WHITE_PAWN)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 			
 			/* Search for enemy king */
-			if(getPiece(x-1,y-1) == Board.WHITE_KING || getPiece(x+1,y-1) == Board.WHITE_KING || getPiece(x,y-1) == Board.WHITE_KING  || getPiece(x+1,y) == Board.WHITE_KING || getPiece(x-1,y) == Board.WHITE_KING || getPiece(x+1,y+1) == Board.WHITE_KING || getPiece(x,y+1) == Board.WHITE_KING || getPiece(x-1,y+1) == Board.WHITE_KING)
+			if(getPiece(board,x-1,y-1) == Board.WHITE_KING || getPiece(board,x+1,y-1) == Board.WHITE_KING || getPiece(board,x,y-1) == Board.WHITE_KING  || getPiece(board,x+1,y) == Board.WHITE_KING || getPiece(board,x-1,y) == Board.WHITE_KING || getPiece(board,x+1,y+1) == Board.WHITE_KING || getPiece(board,x,y+1) == Board.WHITE_KING || getPiece(board,x-1,y+1) == Board.WHITE_KING)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 		}
@@ -1201,14 +1203,12 @@ public class Board
 			while(piece != Board.OOB) //To the right
 			{
 				int[] newPos = {x+count,y};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1222,14 +1222,12 @@ public class Board
 			while(piece != Board.OOB) //To the left
 			{
 				int[] newPos = {x-count,y};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1243,14 +1241,12 @@ public class Board
 			while(piece != Board.OOB) //Down
 			{
 				int[] newPos = {x,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1264,14 +1260,12 @@ public class Board
 			while(piece != Board.OOB) //Up
 			{
 				int[] newPos = {x,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_ROOK)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1286,14 +1280,12 @@ public class Board
 			while(piece != Board.OOB) //Down right
 			{
 				int[] newPos = {x-count,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1307,14 +1299,12 @@ public class Board
 			while(piece != Board.OOB) //Down right
 			{
 				int[] newPos = {x+count,y-count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1328,14 +1318,12 @@ public class Board
 			while(piece != Board.OOB) //Up-left
 			{
 				int[] newPos = {x-count,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1349,14 +1337,12 @@ public class Board
 			while(piece != Board.OOB) //Up-right
 			{
 				int[] newPos = {x+count,y+count};
-				piece = getPiece(newPos);
+				piece = getPiece(board,newPos);
 				
 				if(piece != Board.EMPTY && piece != Board.OOB) //It's an actual piece
 				{
 					if(piece == Board.BLACK_QUEEN || piece == Board.BLACK_BISHOP)
 					{
-						this.board = clone(tempBoard);
-						this.fullBoard = clone(padBoard(tempBoard));
 						return true;
 					}
 					break;
@@ -1366,40 +1352,32 @@ public class Board
 			}
 			
 			/* Search for enemy knights */
-			if(getPiece(x+1,y+2) == Board.BLACK_KNIGHT || getPiece(x+1,y-2) == Board.BLACK_KNIGHT || getPiece(x+2,y+1) == Board.BLACK_KNIGHT || getPiece(x+2,y-1) == Board.BLACK_KNIGHT || getPiece(x-1,y-2) == Board.BLACK_KNIGHT || getPiece(x-1,y-2) == Board.BLACK_KNIGHT || getPiece(x-2,y+1) == Board.BLACK_KNIGHT || getPiece(x-2,y-1) == Board.BLACK_KNIGHT)
+			if(getPiece(board,x+1,y+2) == Board.BLACK_KNIGHT || getPiece(board,x+1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x+2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x+2,y-1) == Board.BLACK_KNIGHT || getPiece(board,x-1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x-1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x-2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x-2,y-1) == Board.BLACK_KNIGHT)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 			
 			/* Search for enemy pawns */
-			if(getPiece(x-1,y+1) == Board.BLACK_PAWN || getPiece(x+1,y+1) == Board.BLACK_PAWN)
+			if(getPiece(board,x-1,y+1) == Board.BLACK_PAWN || getPiece(board,x+1,y+1) == Board.BLACK_PAWN)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 			
 			/* Search for enemy king */
-			if(getPiece(x-1,y-1) == Board.BLACK_KING || getPiece(x+1,y-1) == Board.BLACK_KING || getPiece(x,y-1) == Board.BLACK_KING  || getPiece(x+1,y) == Board.BLACK_KING || getPiece(x-1,y) == Board.BLACK_KING || getPiece(x+1,y+1) == Board.BLACK_KING || getPiece(x,y+1) == Board.BLACK_KING || getPiece(x-1,y+1) == Board.BLACK_KING)
+			if(getPiece(board,x-1,y-1) == Board.BLACK_KING || getPiece(board,x+1,y-1) == Board.BLACK_KING || getPiece(board,x,y-1) == Board.BLACK_KING  || getPiece(board,x+1,y) == Board.BLACK_KING || getPiece(board,x-1,y) == Board.BLACK_KING || getPiece(board,x+1,y+1) == Board.BLACK_KING || getPiece(board,x,y+1) == Board.BLACK_KING || getPiece(board,x-1,y+1) == Board.BLACK_KING)
 			{
-				this.board = clone(tempBoard);
-				this.fullBoard = clone(padBoard(tempBoard));
 				return true;
 			}
 		}
 		
 		/* Restore our original board */
-		this.board = clone(tempBoard);
-		this.fullBoard = clone(padBoard(tempBoard));
 		return false;
 	}
 	
 	
 	
 	/** Return the location of the given side's king **/
-	public int getKingLocation(int checkSide)
+	public static int getKingLocation(int checkSide, byte[][] board)
 	{
 		byte code = 0;
 		
@@ -1422,20 +1400,20 @@ public class Board
 	}
 	
 	/** Return the value at the given square.  Retrieves value from the full, padded board **/
-	public byte getPiece(int square)
+	public static byte getPiece(byte[][] _board, int square)
 	{
 		if(square > 63 || square < 0)
 			return Board.OOB;
 		
-		int[] location = Board.numberToArray(square);
-		return fullBoard[location[0]+2][location[1]+2];
+		int[] loc = Board.numberToArray(square);
+		return clone(padBoard(_board))[loc[0]+2][loc[1]+2];
 	}
 	
 	
 	/** Return the value at the given coordinates **/
-	public byte getPiece(int... loc)
+	public static byte getPiece(byte[][] _board, int... loc)
 	{
-		return fullBoard[loc[0]+2][loc[1]+2];
+		return clone(padBoard(_board))[loc[0]+2][loc[1]+2];
 	}
 	
 	
@@ -1604,7 +1582,7 @@ public class Board
     /** Return a copy of the board **/
     public byte[][] copyBoard()
     {
-    	return clone(board);
+    	return clone(gameBoard);
     }
     
     /** Print end time **/

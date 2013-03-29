@@ -72,13 +72,12 @@ public class Board
 	public String getBestMove()
 	{
 		int[][] moves = getAllPossibleMoves(gameSide, gameBoard);
-		Random r = new Random();
-		int num = r.nextInt(moves.length);
+		int[] best = Evaluation.findBestMove(moves, gameBoard, this.gameSide);
 		
-		int[] start = numberToArray(moves[num][0]);
-		int[] end = numberToArray(moves[num][1]);
+		/*Random r = new Random();
+		int num = r.nextInt(moves.length);*/
 		
-		String move = numberToLetter(start[0],start[1],end[0],end[1]);
+		String move = numberToLetter(best[0],best[1]);
 		return move;
 	}
 	
@@ -113,6 +112,7 @@ public class Board
 	public static byte[][] playMove(String s, byte[][] board)
 	{
 		s = s.trim();
+		board = clone(board);
 		
 		/*if(s.equals("e1g1") && Main.board.side == Board.SIDE_BLACK) //White castling!
 		{
@@ -1010,19 +1010,19 @@ public class Board
 	
 	
 	/** Return true if the given move will cause check for the given side**/
-	public boolean causesCheck(int[] move, int newSide, byte[][] board)
+	public static boolean causesCheck(int[] move, int side, byte[][] board)
 	{
 		board = clone(board); //Store our current board for use later
 		
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
-		playMove(moveString, board);
+		board = playMove(moveString, board);
 		
-		int king = getKingLocation(newSide, board);
+		int king = getKingLocation(side, board);
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
 		int y = kingPos[1];
 		
-		if(newSide == Board.SIDE_BLACK) //Search for moves that cause check for black pieces
+		if(side == Board.SIDE_BLACK) //Search for moves that cause check for black pieces
 		{
 			/* Search horizontally in all directions */
 			byte piece = 0;
@@ -1197,7 +1197,7 @@ public class Board
 			}
 		}
 		
-		else if(newSide == Board.SIDE_BLACK) //Search for moves that cause check for white pieces
+		else if(side == Board.SIDE_WHITE) //Search for moves that cause check for white pieces
 		{
 			/* Search horizontally in all directions */
 			byte piece = 0;

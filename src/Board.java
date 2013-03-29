@@ -112,6 +112,8 @@ public class Board
 	/** Play a single move **/
 	public static byte[][] playMove(String s, byte[][] board)
 	{
+		s = s.trim();
+		
 		/*if(s.equals("e1g1") && Main.board.side == Board.SIDE_BLACK) //White castling!
 		{
 			board[5][0] = Board.WHITE_ROOK;
@@ -1010,7 +1012,7 @@ public class Board
 	/** Return true if the given move will cause check for the given side**/
 	public boolean causesCheck(int[] move, int newSide, byte[][] board)
 	{
-		byte[][] tempBoard = clone(board); //Store our current board for use later
+		board = clone(board); //Store our current board for use later
 		
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
 		playMove(moveString, board);

@@ -1035,6 +1035,10 @@ public class Board
 	public static boolean isInCheck(int side, byte[][] board)
 	{
 		int king = getKingLocation(side, board);
+		
+		//if(king == -1)
+			//System.out.println(Thread.currentThread().getStackTrace().toString());
+		
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
 		int y = kingPos[1];
@@ -1434,7 +1438,7 @@ public class Board
 	{
 		if(loc[0] < -2)
 		{
-			System.out.print(true);
+			//System.out.print(true);
 		}
 		
 		return clone(padBoard(board))[loc[0]+2][loc[1]+2];
@@ -1573,6 +1577,9 @@ public class Board
     /** Convert ArrayList<Integer> to int[] **/
     public static int[][] to2DArray(ArrayList<int[]> data)
     {
+    	if(data.size() == 0)
+    		return new int[0][0];
+    	
     	int[][] newData = new int[data.size()][data.get(0).length];
     	
     	for(int i = 0; i < data.size(); i++)

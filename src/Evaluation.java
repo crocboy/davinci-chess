@@ -13,12 +13,17 @@ public class Evaluation {
 	public static final int CHECK_BONUS = 10;
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 2;
+	public static final int SEARCH_DEPTH = 3;
+	
+	/* Value for mate */
+	public static final int MATE = 10000;
 	
 	
 	/** Find the best move among a list of moves and a given board **/
 	public static int[] findBestMove(byte[][] board, int side)
 	{
+		long s = System.currentTimeMillis();
+		
 		int bestScore = -10000;
 		int[] bestMove = null;
 		
@@ -28,7 +33,9 @@ public class Evaluation {
 		{
 			int[] move = moves[i];
 			byte[][] result = Board.clone(Board.playMove(move, board));
-			int eval = negaMax(SEARCH_DEPTH, result, side);
+			
+			int eval = AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
+			//int eval = negaMax(SEARCH_DEPTH, result, side);
 			
 			if(eval > bestScore)
 			{
@@ -36,6 +43,8 @@ public class Evaluation {
 				bestMove = move;
 			}
 		}
+		
+		System.out.println("Total: " + (System.currentTimeMillis() - s) + "\n");
 		
 		return bestMove;
 	}
@@ -134,8 +143,13 @@ public class Evaluation {
 	}*/
 	
 	
-	public static int negaMax(int depth, byte[][] board, int side) 
+	public static int AB(int depth, byte[][] board, int side, int a, int b) 
 	{	
+		if(Board.getKingLocation(side, board) == -1)
+		{
+			System.out.print("");
+		}
+		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
@@ -144,9 +158,39 @@ public class Evaluation {
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.clone(Board.playMove(move, board));
-	        int score = -negaMax(depth - 1, result, side);
+	        int score = -AB(depth - 1, result, Board.getOpposingSide(side), -a, -b);
 	        if( score > max )
 	            max = score;
+	        if(max > a)
+	        	a = max;
+	        if(max >= b)
+	        	break;
+	        
+	    }
+	    
+	    return max;
+	}
+	
+	
+	public static int negaMax(int depth, byte[][] board, int side) 
+	{	
+		if(Board.getKingLocation(side, board) == -1)
+		{
+			//System.out.print(true);
+		}
+		
+	    if (depth == 0) //Limiting condition
+	    	return evaluate(board, side);
+	    
+	    int max = -10000;
+	    int[][] moves = Board.getAllPossibleMoves(side, board);
+	    for (int[] move : moves)  
+	    {
+	    	byte[][] result = Board.clone(Board.playMove(move, board));
+	        int score = -negaMax(depth - 1, result, Board.getOpposingSide(side));
+	        if( score > max )
+	            max = score;
+	        
 	    }
 	    
 	    return max;

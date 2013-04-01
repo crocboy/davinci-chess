@@ -61,7 +61,7 @@ public class Board
 	
 	
 	/** Private variables */
-	private long startTime;
+	private static long startTime;
 	
 	/** Public constructor: Empty **/
 	public Board()
@@ -71,13 +71,15 @@ public class Board
 	
 	public String getBestMove()
 	{
-		int[][] moves = getAllPossibleMoves(gameSide, gameBoard);
-		int[] best = Evaluation.findBestMove(moves, gameBoard, this.gameSide);
+		start();
+		
+		int[] best = Evaluation.findBestMove(gameBoard, this.gameSide);
 		
 		/*Random r = new Random();
 		int num = r.nextInt(moves.length);*/
 		
 		String move = numberToLetter(best[0],best[1]);
+		end("Best move time");
 		return move;
 	}
 	
@@ -114,14 +116,14 @@ public class Board
 		s = s.trim();
 		board = clone(board);
 		
-		/*if(s.equals("e1g1") && Main.board.side == Board.SIDE_BLACK) //White castling!
+		if(s.equals("e1g1") && Main.board.gameSide == Board.SIDE_BLACK) //White castling!
 		{
 			board[5][0] = Board.WHITE_ROOK;
 			board[6][0] = Board.WHITE_KING;
 			board[4][0] = Board.EMPTY;
 			board[7][0] = Board.EMPTY;
-			return;
-		}*/
+			return board;
+		}
 		
 		if(s.length() == 5) //Pawn promotion
 		{
@@ -153,6 +155,13 @@ public class Board
 	}
 	
 	
+	/** Play a single move (Over-ridden version) **/
+	public static byte[][] playMove(int[] move, byte[][] board)
+	{
+		return playMove(Board.numberToLetter(move[0], move[1]), board);
+	}
+	
+	
 	/** Checks if the given side is in check **/
 	public boolean isCheck(int side, byte[][] board)
 	{
@@ -171,9 +180,9 @@ public class Board
 	
 	
 	/** Return a list of all possible moves, in square-notation **/
-	public int[][] getAllPossibleMoves(int side, byte[][] board)
+	public static int[][] getAllPossibleMoves(int side, final byte[][] board)
 	{
-		start();
+		//start();
 		ArrayList<int[]> allMoves = new ArrayList<int[]>();
 		
 		/* Find the locations of all white pieces */
@@ -187,14 +196,14 @@ public class Board
 			{
 				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
 				{
-					String s = moveToString(square,move);
-					System.out.println(s);
+					//String s = moveToString(square,move);
+					//System.out.println(s);
 					allMoves.add(new int[] {square,move});
 				}
 			}
 		}
 		
-		end("All moves");
+		//end("All moves");
 
 		return to2DArray(allMoves);
 	}
@@ -204,7 +213,7 @@ public class Board
 	/** Return all moves for the piece on the given square.
 	 * Moves are given as one number, the destination square.
 	 * Because the piece location is given, you already know the origin. **/
-	public int[] getMoves(int square, byte[][] board)
+	public static int[] getMoves(int square, byte[][] board)
 	{
 		if(getPiece(board,square) == Board.OOB || getPiece(board,square) == Board.EMPTY)
 			return null;
@@ -262,7 +271,7 @@ public class Board
 	
 	
 	/** Get locations of all pieces on our side **/
-	public int[] getLocations(int side, byte[][] board)
+	public static int[] getLocations(int side, byte[][] board)
 	{
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		
@@ -292,7 +301,7 @@ public class Board
 	/* All methods return int[], where destination squares are given in square notation */
 	
 	/** Generate pawn moves **/
-	public int[] getPawnMoves(int square, byte[][] board)
+	public static int[] getPawnMoves(int square, byte[][] board)
 	{
 		start();
 		byte piece = getPiece(board,square);
@@ -390,7 +399,7 @@ public class Board
 	}
 	
 	/** Generate knight moves **/
-	public int[] getKnightMoves(int square, byte[][] board)
+	public static int[] getKnightMoves(int square, byte[][] board)
 	{
 		start();
 		
@@ -449,7 +458,7 @@ public class Board
 	}
 	
 	/** Generate bishop moves **/
-	public int[] getBishopMoves(int square, byte[][] board)
+	public static int[] getBishopMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board,square);
 		
@@ -579,7 +588,7 @@ public class Board
 	}
 	
 	/** Generate rook moves **/
-	public int[] getRookMoves(int square, byte[][] board)
+	public static int[] getRookMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board, square);
 		
@@ -709,7 +718,7 @@ public class Board
 	}
 	
 	/** Generate queen moves **/
-	public int[] getQueenMoves(int square, byte[][] board)
+	public static int[] getQueenMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board,square);
 		
@@ -920,7 +929,7 @@ public class Board
 	}
 	
 	/** Generate king moves **/
-	public int[] getKingMoves(int square, byte[][] board)
+	public static int[] getKingMoves(int square, byte[][] board)
 	{
 		start();
 		
@@ -1017,6 +1026,14 @@ public class Board
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
 		board = playMove(moveString, board);
 		
+		return isInCheck(side, board); //Call this function to return if the side is in check
+	}
+	
+	
+	
+	/** Return true if the given side is IN check on the given board **/
+	public static boolean isInCheck(int side, byte[][] board)
+	{
 		int king = getKingLocation(side, board);
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
@@ -1413,9 +1430,14 @@ public class Board
 	
 	
 	/** Return the value at the given coordinates **/
-	public static byte getPiece(byte[][] _board, int... loc)
+	public static byte getPiece(byte[][] board, int... loc)
 	{
-		return clone(padBoard(_board))[loc[0]+2][loc[1]+2];
+		if(loc[0] < -2)
+		{
+			System.out.print(true);
+		}
+		
+		return clone(padBoard(board))[loc[0]+2][loc[1]+2];
 	}
 	
 	
@@ -1560,7 +1582,7 @@ public class Board
     }
     
     /** Record start time **/
-    public void start()
+    public static void start()
     {
     	startTime = System.currentTimeMillis();
     }
@@ -1588,8 +1610,18 @@ public class Board
     }
     
     /** Print end time **/
-    public void end(String s)
+    public static void end(String s)
     {
     	//System.out.println(s + " time: " + String.valueOf(System.currentTimeMillis() - startTime));
+    }
+    
+    
+    /** Return the side opposite the given side **/
+    public static int getOpposingSide(int side)
+    {
+    	if(side == Board.SIDE_BLACK)
+    		return Board.SIDE_WHITE;
+    	else
+    		return Board.SIDE_BLACK;
     }
 }

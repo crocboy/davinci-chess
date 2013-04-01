@@ -1,45 +1,69 @@
 /** Evaluation contains all of the necessary pieces to numerically evaluate the position of a chess board **/
 public class Evaluation {
 	
+	/* These ints define the piece values */
+	public static final int PAWN_VALUE = 100;
+	public static final int KNIGHT_VALUE = 300;
+	public static final int BISHOP_VALUE = 300;
+	public static final int ROOK_VALUE = 500;
+	public static final int QUEEN_VALUE = 900;
+	public static final int KING_VALUE = 10000;
+	
+	/* Other constants used for scoring */
+	public static final int CHECK_BONUS = 10;
+	
+	/* Search depth constants */
+	public static final int SEARCH_DEPTH = 2;
+	
 	
 	/** Find the best move among a list of moves and a given board **/
-	public static int[] findBestMove(int[][] moves, byte[][] board, int side)
+	public static int[] findBestMove(byte[][] board, int side)
 	{
-		int maxScore = 0;
-		int index = 0;
+		int bestScore = -10000;
+		int[] bestMove = null;
+		
+		int[][] moves = Board.getAllPossibleMoves(side, Board.clone(board));
 		
 		for(int i = 0; i < moves.length; i++)
 		{
 			int[] move = moves[i];
-			int eval = evaluate(move,board, side);
+			byte[][] result = Board.clone(Board.playMove(move, board));
+			int eval = negaMax(SEARCH_DEPTH, result, side);
 			
-			if(Board.causesCheck(move, Board.SIDE_WHITE, board))
+			if(eval > bestScore)
 			{
-				eval += 10;
-				System.out.println("Can cause check: " + move[0] + " to " + move[1]);
-			}
-			
-			if(eval > maxScore)
-			{
-				maxScore = eval;
-				index = i;
+				bestScore = eval;
+				bestMove = move;
 			}
 		}
 		
-		return moves[index];
+		return bestMove;
 	}
 	
 	
 	/** Evaluate the result of the move on the given board **/
-	public static int evaluate(int[] move, byte[][] board, int side)
+	public static int evaluate(byte[][] board, int side)
 	{
-		byte[][] result = Board.clone(Board.playMove(Board.numberToLetter(move[0], move[1]),board));
-		return evaluate(result, side);
+		int eval = 0;
+		
+		int myMaterial = getMaterialValue(side, board); //Get net material score
+		int theirMaterial = getMaterialValue(Board.getOpposingSide(side), board);
+		eval +=  myMaterial - theirMaterial;
+		
+		//Add a check bonus
+		if(Board.isInCheck(Board.getOpposingSide(side), board))
+		{
+			eval += CHECK_BONUS;
+			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
+		}
+		
+		return eval;
 	}
 	
 	
-	/** Numerically evaluate the given board.  Assuming you are the given side, it will always return a positive number **/
-	public static int evaluate(byte[][] board, int side)
+	
+	/** Return the raw material value on the given board of the given side **/
+	public static int getMaterialValue(int side, byte[][] board)
 	{
 		int eval = 0;
 		
@@ -52,37 +76,80 @@ public class Evaluation {
 				if(side == Board.SIDE_WHITE)
 				{
 					if(piece == Board.WHITE_PAWN)
-						eval += 1;
+						eval += PAWN_VALUE;
 					if(piece == Board.WHITE_KNIGHT)
-						eval += 3;
+						eval += KNIGHT_VALUE;
 					if(piece == Board.WHITE_BISHOP)
-						eval += 3;
+						eval += BISHOP_VALUE;
 					if(piece == Board.WHITE_ROOK)
-						eval += 5;
+						eval += ROOK_VALUE;
 					if(piece == Board.WHITE_QUEEN)
-						eval += 9;
+						eval += QUEEN_VALUE;
 					if(piece == Board.WHITE_KING)
-						eval += 20;
+						eval += KING_VALUE;
 				}
 				
 				if(side == Board.SIDE_BLACK)
 				{
 					if(piece == Board.BLACK_PAWN)
-						eval += 1;
+						eval += PAWN_VALUE;
 					if(piece == Board.BLACK_KNIGHT)
-						eval += 3;
+						eval += KNIGHT_VALUE;
 					if(piece == Board.BLACK_BISHOP)
-						eval += 3;
+						eval += BISHOP_VALUE;
 					if(piece == Board.BLACK_ROOK)
-						eval += 5;
+						eval += ROOK_VALUE;
 					if(piece == Board.BLACK_QUEEN)
-						eval += 9;
+						eval += QUEEN_VALUE;
 					if(piece == Board.BLACK_KING)
-						eval += 20;
+						eval += KING_VALUE;
 				}
 			}
 		}
 		return eval;
+	}
+	
+	
+	
+	/*public static int NegaMax(byte[][] board, int depth, int side) 
+	{
+		board = Board.clone(board);
+		 if (depth == 0) 
+			 return Evaluation.getMaterialValue(side, board);
+		 
+		int bestScore = -10000; 
+		
+		for(int[] move : Board.getAllPossibleMoves(side, board))
+		{
+			byte[][] newBoard = Board.clone(Board.playMove(move, board));
+			int score = NegaMax(newBoard, depth-1, Board.getOpposingSide(side));
+			 score = -score;
+			 if ( score > bestScore )
+			 {
+				bestScore = score; 
+			 }
+			
+		}
+		 return bestScore;
+	}*/
+	
+	
+	public static int negaMax(int depth, byte[][] board, int side) 
+	{	
+	    if (depth == 0) //Limiting condition
+	    	return evaluate(board, side);
+	    
+	    int max = -10000;
+	    int[][] moves = Board.getAllPossibleMoves(side, board);
+	    for (int[] move : moves)  
+	    {
+	    	byte[][] result = Board.clone(Board.playMove(move, board));
+	        int score = -negaMax(depth - 1, result, side);
+	        if( score > max )
+	            max = score;
+	    }
+	    
+	    return max;
 	}
 	
 	

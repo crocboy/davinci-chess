@@ -13,7 +13,7 @@ public class Evaluation {
 	public static final int CHECK_BONUS = 10;
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 3;
+	public static final int SEARCH_DEPTH = 2;
 	
 	/* Value for mate */
 	public static final int MATE = 10000;
@@ -34,8 +34,8 @@ public class Evaluation {
 			int[] move = moves[i];
 			byte[][] result = Board.clone(Board.playMove(move, board));
 			
-			int eval = AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
-			//int eval = negaMax(SEARCH_DEPTH, result, side);
+			//int eval = AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
+			int eval = negaMax(SEARCH_DEPTH, result, side);
 			
 			if(eval > bestScore)
 			{
@@ -53,20 +53,19 @@ public class Evaluation {
 	/** Evaluate the result of the move on the given board **/
 	public static int evaluate(byte[][] board, int side)
 	{
-		int eval = 0;
 		
 		int myMaterial = getMaterialValue(side, board); //Get net material score
 		int theirMaterial = getMaterialValue(Board.getOpposingSide(side), board);
-		eval +=  myMaterial - theirMaterial;
+		int eval =  (myMaterial - theirMaterial);
 		
 		//Add a check bonus
-		if(Board.isInCheck(Board.getOpposingSide(side), board))
+		/*if(Board.isInCheck(Board.getOpposingSide(side), board))
 		{
 			eval += CHECK_BONUS;
 			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
-		}
+		}*/
 		
-		return eval;
+		return (eval * side);
 	}
 	
 	
@@ -153,7 +152,7 @@ public class Evaluation {
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    int max = -10000;
+	    int max = -100000;
 	    int[][] moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {
@@ -164,7 +163,7 @@ public class Evaluation {
 	        if(max > a)
 	        	a = max;
 	        if(max >= b)
-	        	break;
+	        	return max;
 	        
 	    }
 	    
@@ -174,15 +173,15 @@ public class Evaluation {
 	
 	public static int negaMax(int depth, byte[][] board, int side) 
 	{	
-		if(Board.getKingLocation(side, board) == -1)
+		/*if(Board.getKingLocation(side, board) == -1)
 		{
 			//System.out.print(true);
-		}
+		}*/
 		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    int max = -10000;
+	    int max = -100000;
 	    int[][] moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {

@@ -25,7 +25,7 @@ public class Board
 	public static final byte BLACK_QUEEN = -5;
 	public static final byte BLACK_KING = -6;
 	
-	public static final byte SIDE_WHITE = 0;
+	public static final byte SIDE_WHITE = -1;
 	public static final byte SIDE_BLACK = 1;
 	
 	

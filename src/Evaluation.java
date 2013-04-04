@@ -1,22 +1,26 @@
+import java.util.ArrayList;
+
 /** Evaluation contains all of the necessary pieces to numerically evaluate the position of a chess board **/
 public class Evaluation {
 	
 	/* These ints define the piece values */
-	public static final int PAWN_VALUE = 100;
-	public static final int KNIGHT_VALUE = 300;
-	public static final int BISHOP_VALUE = 300;
-	public static final int ROOK_VALUE = 500;
-	public static final int QUEEN_VALUE = 900;
-	public static final int KING_VALUE = 10000;
+	public static final int PAWN_VALUE = 10;
+	public static final int KNIGHT_VALUE = 30;
+	public static final int BISHOP_VALUE = 30;
+	public static final int ROOK_VALUE = 50;
+	public static final int QUEEN_VALUE = 90;
+	public static final int KING_VALUE = 1000;
 	
 	/* Other constants used for scoring */
 	public static final int CHECK_BONUS = 10;
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 2;
+	public static final int SEARCH_DEPTH = 3;
 	
 	/* Value for mate */
 	public static final int MATE = 10000;
+	
+	public static int TOTAL_SEARCH_TIME = 0;
 	
 	
 	/** Find the best move among a list of moves and a given board **/
@@ -24,18 +28,23 @@ public class Evaluation {
 	{
 		long s = System.currentTimeMillis();
 		
+		/* Reset check vars */
+		Board.TOTAL_CHECKING_TIME = 0;
+		Board.TOTAL_MOVES_TIME = 0;
+		Evaluation.TOTAL_SEARCH_TIME = 0;
+		
 		int bestScore = -10000;
 		int[] bestMove = null;
 		
-		int[][] moves = Board.getAllPossibleMoves(side, Board.clone(board));
+		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
 		
-		for(int i = 0; i < moves.length; i++)
+		long start = System.currentTimeMillis();
+		for(int [] move : moves)
 		{
-			int[] move = moves[i];
 			byte[][] result = Board.clone(Board.playMove(move, board));
 			
-			//int eval = AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
-			int eval = negaMax(SEARCH_DEPTH, result, side);
+			int eval = -AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
+			//int eval = -negaMax(SEARCH_DEPTH, result, side);
 			
 			if(eval > bestScore)
 			{
@@ -43,8 +52,12 @@ public class Evaluation {
 				bestMove = move;
 			}
 		}
+		Evaluation.TOTAL_SEARCH_TIME += System.currentTimeMillis() - start;
 		
-		System.out.println("Total: " + (System.currentTimeMillis() - s) + "\n");
+		System.out.println("Total: " + (System.currentTimeMillis() - s));
+		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
+		System.out.println("Total Moves: " + Board.TOTAL_MOVES_TIME);
+		System.out.println("Total Search: " + Evaluation.TOTAL_SEARCH_TIME);
 		
 		return bestMove;
 	}
@@ -64,6 +77,7 @@ public class Evaluation {
 			eval += CHECK_BONUS;
 			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
 		}*/
+		
 		
 		return (eval * side);
 	}
@@ -146,14 +160,14 @@ public class Evaluation {
 	{	
 		if(Board.getKingLocation(side, board) == -1)
 		{
-			System.out.print("");
+			System.out.println("HE'S GONEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 		}
 		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
 	    int max = -100000;
-	    int[][] moves = Board.getAllPossibleMoves(side, board);
+	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.clone(Board.playMove(move, board));
@@ -173,21 +187,21 @@ public class Evaluation {
 	
 	public static int negaMax(int depth, byte[][] board, int side) 
 	{	
-		/*if(Board.getKingLocation(side, board) == -1)
+		if(Board.getKingLocation(side, board) == -1)
 		{
-			//System.out.print(true);
-		}*/
+			System.out.println("AAAAAAAAAHHHHHHHHHHH");
+		}
 		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
 	    int max = -100000;
-	    int[][] moves = Board.getAllPossibleMoves(side, board);
+	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.clone(Board.playMove(move, board));
 	        int score = -negaMax(depth - 1, result, Board.getOpposingSide(side));
-	        if( score > max )
+	        if(score > max)
 	            max = score;
 	        
 	    }

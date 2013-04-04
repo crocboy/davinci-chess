@@ -28,6 +28,10 @@ public class Board
 	public static final byte SIDE_WHITE = -1;
 	public static final byte SIDE_BLACK = 1;
 	
+	/* Testing variables */
+	public static int TOTAL_CHECKING_TIME = 0;
+	public static int TOTAL_MOVES_TIME = 0;
+	
 	
 	/** Empty square **/
 	public static final byte EMPTY = 0;
@@ -165,7 +169,7 @@ public class Board
 	/** Checks if the given side is in check **/
 	public boolean isCheck(int side, byte[][] board)
 	{
-		int[][] moves = getAllPossibleMoves(side, board);
+		ArrayList<int[]> moves = getAllPossibleMoves(side, board);
 		int kingSquare = getKingLocation(side, board);
 		
 		for(int[] pos : moves) //Look through all moves, see if our king's square is one of the destinations
@@ -180,7 +184,7 @@ public class Board
 	
 	
 	/** Return a list of all possible moves, in square-notation **/
-	public static int[][] getAllPossibleMoves(int side, final byte[][] board)
+	public static ArrayList<int[]> getAllPossibleMoves(int side, final byte[][] board)
 	{
 		//start();
 		ArrayList<int[]> allMoves = new ArrayList<int[]>();
@@ -191,7 +195,7 @@ public class Board
 		/* Add all moves for all pieces */
 		for(int square : locs)
 		{
-			int[] moves = getMoves(square, board);
+			ArrayList<Integer> moves = getMoves(square, board);
 			for(int move : moves)
 			{
 				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
@@ -205,7 +209,7 @@ public class Board
 		
 		//end("All moves");
 
-		return to2DArray(allMoves);
+		return allMoves;
 	}
 	
 	
@@ -213,8 +217,9 @@ public class Board
 	/** Return all moves for the piece on the given square.
 	 * Moves are given as one number, the destination square.
 	 * Because the piece location is given, you already know the origin. **/
-	public static int[] getMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getMoves(int square, byte[][] board)
 	{
+		long start = System.currentTimeMillis();
 		if(getPiece(board,square) == Board.OOB || getPiece(board,square) == Board.EMPTY)
 			return null;
 		
@@ -252,7 +257,8 @@ public class Board
 				return getKingMoves(square, board);
 		}
 		
-		return toArray(allMoves);
+		Board.TOTAL_MOVES_TIME += System.currentTimeMillis() - start;
+		return allMoves;
 	}
 	
 	
@@ -301,7 +307,7 @@ public class Board
 	/* All methods return int[], where destination squares are given in square notation */
 	
 	/** Generate pawn moves **/
-	public static int[] getPawnMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getPawnMoves(int square, byte[][] board)
 	{
 		start();
 		byte piece = getPiece(board,square);
@@ -395,11 +401,11 @@ public class Board
 		}
 		
 		end("Pawn moves");
-		return Board.toArray(finalMoves);
+		return finalMoves;
 	}
 	
 	/** Generate knight moves **/
-	public static int[] getKnightMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getKnightMoves(int square, byte[][] board)
 	{
 		start();
 		
@@ -454,11 +460,11 @@ public class Board
 		}
 		
 		end("Knight moves");
-		return toArray(moves);
+		return moves;
 	}
 	
 	/** Generate bishop moves **/
-	public static int[] getBishopMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getBishopMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board,square);
 		
@@ -584,11 +590,11 @@ public class Board
 		}
 		
 		end("Bishop moves");
-		return toArray(moves);
+		return moves;
 	}
 	
 	/** Generate rook moves **/
-	public static int[] getRookMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getRookMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board, square);
 		
@@ -714,11 +720,11 @@ public class Board
 		}
 		
 		end("Rook moves");
-		return toArray(moves);
+		return moves;
 	}
 	
 	/** Generate queen moves **/
-	public static int[] getQueenMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getQueenMoves(int square, byte[][] board)
 	{
 		byte piece = getPiece(board,square);
 		
@@ -925,11 +931,11 @@ public class Board
 		}
 		
 		end("Queen moves");
-		return toArray(moves);
+		return moves;
 	}
 	
 	/** Generate king moves **/
-	public static int[] getKingMoves(int square, byte[][] board)
+	public static ArrayList<Integer> getKingMoves(int square, byte[][] board)
 	{
 		start();
 		
@@ -983,7 +989,7 @@ public class Board
 		}
 		
 		end("King moves");
-		return toArray(moves);
+		return moves;
 	}
 	
 	
@@ -1034,6 +1040,7 @@ public class Board
 	/** Return true if the given side is IN check on the given board **/
 	public static boolean isInCheck(int side, byte[][] board)
 	{
+		long start = System.currentTimeMillis();
 		int king = getKingLocation(side, board);
 		
 		//if(king == -1)
@@ -1393,6 +1400,8 @@ public class Board
 			}
 		}
 		
+		Board.TOTAL_CHECKING_TIME += System.currentTimeMillis() - start;
+		
 		/* Restore our original board */
 		return false;
 	}
@@ -1567,20 +1576,6 @@ public class Board
     public static int[] toArray(ArrayList<Integer> data)
     {
     	int[] newData = new int[data.size()];
-    	
-    	for(int i = 0; i < data.size(); i++)
-    		newData[i] = data.get(i);
-    	
-    	return newData;
-    }
-    
-    /** Convert ArrayList<Integer> to int[] **/
-    public static int[][] to2DArray(ArrayList<int[]> data)
-    {
-    	if(data.size() == 0)
-    		return new int[0][0];
-    	
-    	int[][] newData = new int[data.size()][data.get(0).length];
     	
     	for(int i = 0; i < data.size(); i++)
     		newData[i] = data.get(i);

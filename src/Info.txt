@@ -1,0 +1,6 @@
+Things to fix:
+
+	-Reduce number of calls to Board.clone() (And re-do the debug variable when you get home)
+	-Don't convert moves from string to [] to square notation - settle on one form and use it (Add debug variable)
+	-Look into making isInCheck() faster
+	-Go home and record benchmarks and averages so you have points of comparison

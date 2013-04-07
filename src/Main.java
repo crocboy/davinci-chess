@@ -3,18 +3,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /** The main entry point for the program **/
+
+/* BENCHMARKS:
+ * Check-checking takes up: 69% (4) 65% (3) as of 4/4/13, no optimizations
+ * Move-gen takes up: 24% (4) 22% (3) as of 4/4/13, no optimizations
+ */
 public class Main 
 {
 	/* Public static member variables */
-	
-	//WHITE PAWN PROMOTION STRING: position startpos moves e2e4 a7a6 b2b4 a6a5 b4a5 a8a7 a5a6 a7a6 e4e5 a6b6 a2a4 b6c6 a4a5 b7b6 a5a6 b6b5 a6a7 b5b4 a7a8q
-	//BLACK PAWN PROMOTION STRING: position startpos moves e2e3 a7a6 e3e4 a6a5 e4e5 a5a4 d2d3 a4a3 d3d4 a3b2 d4d5 b2c1q
-	
-	//KING-IN-CHECK TEST STRING: position startpos moves g2g4 a7a6 g4g5 a6a5 g5g6 a5a4 g6f7
-	
-	//Check error string: position startpos moves g1f3 c7c6 f3e5 h7h5 e5c6 d7d5 c6e5 g7g6 e5g6 h8h6 g6h8 f8g7 h8g6 c8g4 g6e5 d8c7 e5c6 a7a5 c6e5 c7c3 e5f7 c3d2 e1d2 h6h8 f7h8 b8a6 h8f7 a8d8 f7d6 e8d7 d6e8 a5a4 e8f6 d7c6 f6g8 d8e8 f2f3 c6c5 f3g4 g7c3 d2c3 b7b6 d1d4 c5b5 d4d5 a6c5 d5c5 b5a6 c5b6
-	
-	//Causes check for white string: position startpos moves e2e3 a7a6 d2d3 a6a5 b2b3 a5a4 b3a4 a8a7 d3d4 a7a6 e3e4 a6b6 e4e5 b6c6 e5e6
 	public static Board board = new Board();
 	public static Evaluation eval = new Evaluation();
 	

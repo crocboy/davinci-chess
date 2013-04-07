@@ -29,4 +29,11 @@ public class Util
         return newArray;
     }
     
+    /** Return one long divided by the other **/
+    public static double getPercent(long s, long e)
+    {
+    	double d = (double)s/(double)e;
+    	return d;
+    }
+    
 }

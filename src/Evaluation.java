@@ -18,9 +18,9 @@ public class Evaluation {
 	public static final int SEARCH_DEPTH = 3;
 	
 	/* Value for mate */
-	public static final int MATE = 10000;
+	public static final int MATE = 1000000;
 	
-	public static int TOTAL_SEARCH_TIME = 0;
+	public static int TOTAL_EVAL_TIME = 0;
 	
 	
 	/** Find the best move among a list of moves and a given board **/
@@ -31,14 +31,14 @@ public class Evaluation {
 		/* Reset check vars */
 		Board.TOTAL_CHECKING_TIME = 0;
 		Board.TOTAL_MOVES_TIME = 0;
-		Evaluation.TOTAL_SEARCH_TIME = 0;
+		Evaluation.TOTAL_EVAL_TIME = 0;
+		Board.TOTAL_CLONE_TIME =0;
 		
 		int bestScore = -10000;
 		int[] bestMove = null;
 		
 		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
 		
-		long start = System.currentTimeMillis();
 		for(int [] move : moves)
 		{
 			byte[][] result = Board.clone(Board.playMove(move, board));
@@ -52,12 +52,14 @@ public class Evaluation {
 				bestMove = move;
 			}
 		}
-		Evaluation.TOTAL_SEARCH_TIME += System.currentTimeMillis() - start;
 		
-		System.out.println("Total: " + (System.currentTimeMillis() - s));
-		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
-		System.out.println("Total Moves: " + Board.TOTAL_MOVES_TIME);
-		System.out.println("Total Search: " + Evaluation.TOTAL_SEARCH_TIME);
+		
+		long total = System.currentTimeMillis() - s;
+		System.out.println("Total: " + total);
+		System.out.println("Total Checking: " + Util.getPercent(Board.TOTAL_CHECKING_TIME, total));
+		System.out.println("Total Cloning: " + Util.getPercent(Board.TOTAL_CLONE_TIME, total));
+		System.out.println("Total Moves: " + Util.getPercent(Board.TOTAL_MOVES_TIME, total));
+		System.out.println("Total Eval: " + Util.getPercent(Evaluation.TOTAL_EVAL_TIME, total));
 		
 		return bestMove;
 	}
@@ -66,7 +68,7 @@ public class Evaluation {
 	/** Evaluate the result of the move on the given board **/
 	public static int evaluate(byte[][] board, int side)
 	{
-		
+		long start = System.currentTimeMillis();
 		int myMaterial = getMaterialValue(side, board); //Get net material score
 		int theirMaterial = getMaterialValue(Board.getOpposingSide(side), board);
 		int eval =  (myMaterial - theirMaterial);
@@ -78,7 +80,7 @@ public class Evaluation {
 			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
 		}*/
 		
-		
+		Evaluation.TOTAL_EVAL_TIME += System.currentTimeMillis() - start;
 		return (eval * side);
 	}
 	
@@ -132,30 +134,6 @@ public class Evaluation {
 	}
 	
 	
-	
-	/*public static int NegaMax(byte[][] board, int depth, int side) 
-	{
-		board = Board.clone(board);
-		 if (depth == 0) 
-			 return Evaluation.getMaterialValue(side, board);
-		 
-		int bestScore = -10000; 
-		
-		for(int[] move : Board.getAllPossibleMoves(side, board))
-		{
-			byte[][] newBoard = Board.clone(Board.playMove(move, board));
-			int score = NegaMax(newBoard, depth-1, Board.getOpposingSide(side));
-			 score = -score;
-			 if ( score > bestScore )
-			 {
-				bestScore = score; 
-			 }
-			
-		}
-		 return bestScore;
-	}*/
-	
-	
 	public static int AB(int depth, byte[][] board, int side, int a, int b) 
 	{	
 		if(Board.getKingLocation(side, board) == -1)
@@ -166,11 +144,11 @@ public class Evaluation {
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    int max = -100000;
-	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
+	    int max = -MATE;
+	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board.clone());
 	    for (int[] move : moves)  
 	    {
-	    	byte[][] result = Board.clone(Board.playMove(move, board));
+	    	byte[][] result = Board.playMove(move, board);
 	        int score = -AB(depth - 1, result, Board.getOpposingSide(side), -a, -b);
 	        if( score > max )
 	            max = score;
@@ -195,7 +173,7 @@ public class Evaluation {
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    int max = -100000;
+	    int max = -MATE;
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {
@@ -208,30 +186,4 @@ public class Evaluation {
 	    
 	    return max;
 	}
-	
-	
-	/* Minimax functions */
-	/*public int maxi( int depth ) {
-	    if ( depth == 0 ) return evaluate();
-	    int max = -oo;
-	    for ( all moves) {
-	        score = mini( depth - 1 );
-	        if( score > max )
-	            max = score;
-	    }
-	    return max;
-	}
-	 
-	public int mini( int depth ) {
-	    if ( depth == 0 ) return -evaluate();
-	    int min = +oo;
-	    for ( all moves) {
-	        score = maxi( depth - 1 );
-	        if( score < min )
-	            min = score;
-	    }
-	    return min;
-	}*/
-	
-
 }

@@ -31,6 +31,7 @@ public class Board
 	/* Testing variables */
 	public static int TOTAL_CHECKING_TIME = 0;
 	public static int TOTAL_MOVES_TIME = 0;
+	public static int TOTAL_CLONE_TIME = 0;
 	
 	
 	/** Empty square **/
@@ -190,12 +191,14 @@ public class Board
 		ArrayList<int[]> allMoves = new ArrayList<int[]>();
 		
 		/* Find the locations of all white pieces */
-		int[] locs = getLocations(side, board);
+		ArrayList<Integer> locs = getLocations(side, board);
 		
 		/* Add all moves for all pieces */
 		for(int square : locs)
 		{
+			long start = System.currentTimeMillis();
 			ArrayList<Integer> moves = getMoves(square, board);
+			Board.TOTAL_MOVES_TIME += (System.currentTimeMillis() - start);
 			for(int move : moves)
 			{
 				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
@@ -219,7 +222,6 @@ public class Board
 	 * Because the piece location is given, you already know the origin. **/
 	public static ArrayList<Integer> getMoves(int square, byte[][] board)
 	{
-		long start = System.currentTimeMillis();
 		if(getPiece(board,square) == Board.OOB || getPiece(board,square) == Board.EMPTY)
 			return null;
 		
@@ -257,7 +259,7 @@ public class Board
 				return getKingMoves(square, board);
 		}
 		
-		Board.TOTAL_MOVES_TIME += System.currentTimeMillis() - start;
+		
 		return allMoves;
 	}
 	
@@ -277,7 +279,7 @@ public class Board
 	
 	
 	/** Get locations of all pieces on our side **/
-	public static int[] getLocations(int side, byte[][] board)
+	public static ArrayList<Integer> getLocations(int side, byte[][] board)
 	{
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		
@@ -299,7 +301,7 @@ public class Board
 			}
 		}
 		
-		return toArray(pos);
+		return pos;
 	}
 	
 	
@@ -1043,9 +1045,6 @@ public class Board
 		long start = System.currentTimeMillis();
 		int king = getKingLocation(side, board);
 		
-		//if(king == -1)
-			//System.out.println(Thread.currentThread().getStackTrace().toString());
-		
 		int[] kingPos = numberToArray(king);
 		int x = kingPos[0];
 		int y = kingPos[1];
@@ -1432,25 +1431,27 @@ public class Board
 	}
 	
 	/** Return the value at the given square.  Retrieves value from the full, padded board **/
-	public static byte getPiece(byte[][] _board, int square)
+	public static byte getPiece(byte[][] board, int square)
 	{
 		if(square > 63 || square < 0)
 			return Board.OOB;
 		
 		int[] loc = Board.numberToArray(square);
-		return clone(padBoard(_board))[loc[0]+2][loc[1]+2];
+		//return clone(padBoard(board))[loc[0]+2][loc[1]+2];
+		return padBoard(board)[loc[0]+2][loc[1]+2];
 	}
 	
 	
 	/** Return the value at the given coordinates **/
-	public static byte getPiece(byte[][] board, int... loc)
+	public static byte getPiece(final byte[][] board, int... loc)
 	{
 		if(loc[0] < -2)
 		{
 			//System.out.print(true);
 		}
 		
-		return clone(padBoard(board))[loc[0]+2][loc[1]+2];
+		//return clone(padBoard(board))[loc[0]+2][loc[1]+2];
+		return padBoard(board)[loc[0]+2][loc[1]+2];
 	}
 	
 	
@@ -1571,18 +1572,6 @@ public class Board
     	return square;
     }
     
-    
-    /** Convert ArrayList<Integer> to int[] **/
-    public static int[] toArray(ArrayList<Integer> data)
-    {
-    	int[] newData = new int[data.size()];
-    	
-    	for(int i = 0; i < data.size(); i++)
-    		newData[i] = data.get(i);
-    	
-    	return newData;
-    }
-    
     /** Record start time **/
     public static void start()
     {
@@ -1593,6 +1582,7 @@ public class Board
     /** Clone a byte[][] **/
     public static byte[][] clone(byte[][] data)
     {
+    	long start = System.currentTimeMillis();
     	byte[][] newData = new byte[data.length][data[0].length];
     	for(int x = 0; x < data.length; x++)
     	{
@@ -1601,6 +1591,7 @@ public class Board
     			newData[x][y] = data[x][y];
     		}
     	}
+    	Board.TOTAL_CLONE_TIME += System.currentTimeMillis() - start;
     	return newData;
     }
     

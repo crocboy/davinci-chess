@@ -4,3 +4,18 @@ Things to fix:
 	-Don't convert moves from string to [] to square notation - settle on one form and use it (Add debug variable)
 	-Look into making isInCheck() faster
 	-Go home and record benchmarks and averages so you have points of comparison
+	
+
+All benchmarks should be run with NO programs running and all threads in the Debug tab closed
+Use the following move string: "position startpos moves e2e4"
+
+BENCHMARKS ON 4/6/13, NO OPTIMIZATIONS
+	-Depth 3: Anywhere from 6500 to 7200
+	-Depth 4: Min was 50s, Max was ~80, but most values were around 60s
+	-Cloning takes up about 40% of all time
+	
+4/7/13: Took out A LOT of references to clone().  A byte[][] variable is actually a pointer.  I'm looking into how we can remove more calls to clone()
+	-Depth 3: ~1900 ms
+	-Depth 4: ~ 19.5 s
+	-Cloning down to about 2-3%
+	-Testing was done after a fresh reboot, 4/6 benchmarks may be innaccurate, nonetheless a lot of saving was done

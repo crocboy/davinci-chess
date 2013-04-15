@@ -30,7 +30,6 @@ public class Board
 	
 	/* Testing variables */
 	public static int TOTAL_CHECKING_TIME = 0;
-	public static int TOTAL_MOVES_TIME = 0;
 	public static int TOTAL_CLONE_TIME = 0;
 	
 	
@@ -198,7 +197,7 @@ public class Board
 		{
 			long start = System.currentTimeMillis();
 			ArrayList<Integer> moves = getMoves(square, board);
-			Board.TOTAL_MOVES_TIME += (System.currentTimeMillis() - start);
+			//Board.TOTAL_MOVES_TIME += (System.currentTimeMillis() - start);
 			for(int move : moves)
 			{
 				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
@@ -258,8 +257,6 @@ public class Board
 			case Board.BLACK_KING:
 				return getKingMoves(square, board);
 		}
-		
-		
 		return allMoves;
 	}
 	
@@ -1546,7 +1543,6 @@ public class Board
             end[1] = Integer.parseInt(String.valueOf(s.charAt(3))) - 1;
             
             int[] square = {arrayToNumber(start), arrayToNumber(end)};
-            
             return square;
     }
     

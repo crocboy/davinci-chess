@@ -15,7 +15,7 @@ public class Evaluation {
 	public static final int CHECK_BONUS = 10;
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 1;
+	public static int SEARCH_DEPTH = 1;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -30,21 +30,28 @@ public class Evaluation {
 		
 		/* Reset check vars */
 		Board.TOTAL_CHECKING_TIME = 0;
-		Board.TOTAL_MOVES_TIME = 0;
+		Board.TOTAL_CLONE_TIME = 0;
 		Evaluation.TOTAL_EVAL_TIME = 0;
 		Board.TOTAL_CLONE_TIME =0;
 		
 		int bestScore = -MATE;
 		int[] bestMove = null;
 		
-		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
+		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
 		
 		for(int[] move : moves)
 		{
 			byte[][] result = Board.clone(Board.playMove(move, board));
+			int eval = 0;
 			
-			//int eval = AB(SEARCH_DEPTH, result, side, -MATE, MATE);
-			int eval = -negaMax(SEARCH_DEPTH - 1, result, -side);
+			if(SEARCH_DEPTH == 0)
+				eval = evaluate(result, side);
+			
+			else 
+			{
+				//eval = -AB(SEARCH_DEPTH, result, side, -MATE, MATE);
+				eval = -negaMax(SEARCH_DEPTH, result, -side);
+			}
 			
 			if(eval > bestScore)
 			{
@@ -53,13 +60,10 @@ public class Evaluation {
 			}
 		}
 		
-		
-		long total = System.currentTimeMillis() - s;
-		System.out.println("Total: " + total);
-		System.out.println("Total Checking: " + Util.getPercent(Board.TOTAL_CHECKING_TIME, total));
-		System.out.println("Total Cloning: " + Util.getPercent(Board.TOTAL_CLONE_TIME, total));
-		System.out.println("Total Moves: " + Util.getPercent(Board.TOTAL_MOVES_TIME, total));
-		System.out.println("Total Eval: " + Evaluation.TOTAL_EVAL_TIME);
+		System.out.println("Total: " + (System.currentTimeMillis() - s));
+		System.out.println("Total Clone: " + Board.TOTAL_CLONE_TIME);
+		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
+		//System.out.println("Total Search: " + Evaluation.TOTAL_SEARCH_TIME);
 		
 		return bestMove;
 	}
@@ -68,6 +72,7 @@ public class Evaluation {
 	/** Evaluate the result of the move on the given board **/
 	public static int evaluate(byte[][] board, int side)
 	{
+		side = Board.SIDE_BLACK;
 		long start = System.currentTimeMillis();
 		int material = getMaterialValue(side, board);
 		
@@ -122,18 +127,13 @@ public class Evaluation {
 					bEval += KING_VALUE;
 			}
 		}
-		
 		return (bEval - wEval) * side;
 	}
 	
 	
+	
 	public static int AB(int depth, byte[][] board, int side, int a, int b) 
 	{	
-		if(Board.getKingLocation(side, board) == -1)
-		{
-			System.out.println("HE'S GONEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-		}
-		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
@@ -141,7 +141,7 @@ public class Evaluation {
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);
-	        int score = -AB(depth - 1, result, Board.getOpposingSide(side), -b, -a);
+	        int score = -AB(depth - 1, result, -side, -b, -a);
 	        
 	        if(score >= b)
 	        	return b;

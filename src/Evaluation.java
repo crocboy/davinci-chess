@@ -15,10 +15,10 @@ public class Evaluation {
 	public static final int CHECK_BONUS = 10;
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 3;
+	public static final int SEARCH_DEPTH = 1;
 	
 	/* Value for mate */
-	public static final int MATE = 1000000;
+	public static final int MATE = Integer.MAX_VALUE;
 	
 	public static int TOTAL_EVAL_TIME = 0;
 	
@@ -34,17 +34,17 @@ public class Evaluation {
 		Evaluation.TOTAL_EVAL_TIME = 0;
 		Board.TOTAL_CLONE_TIME =0;
 		
-		int bestScore = -10000;
+		int bestScore = -MATE;
 		int[] bestMove = null;
 		
 		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
 		
-		for(int [] move : moves)
+		for(int[] move : moves)
 		{
 			byte[][] result = Board.clone(Board.playMove(move, board));
 			
-			int eval = -AB(SEARCH_DEPTH, result, Board.getOpposingSide(side), -MATE, MATE);
-			//int eval = -negaMax(SEARCH_DEPTH, result, side);
+			//int eval = AB(SEARCH_DEPTH, result, side, -MATE, MATE);
+			int eval = -negaMax(SEARCH_DEPTH - 1, result, -side);
 			
 			if(eval > bestScore)
 			{
@@ -59,7 +59,7 @@ public class Evaluation {
 		System.out.println("Total Checking: " + Util.getPercent(Board.TOTAL_CHECKING_TIME, total));
 		System.out.println("Total Cloning: " + Util.getPercent(Board.TOTAL_CLONE_TIME, total));
 		System.out.println("Total Moves: " + Util.getPercent(Board.TOTAL_MOVES_TIME, total));
-		System.out.println("Total Eval: " + Util.getPercent(Evaluation.TOTAL_EVAL_TIME, total));
+		System.out.println("Total Eval: " + Evaluation.TOTAL_EVAL_TIME);
 		
 		return bestMove;
 	}
@@ -69,9 +69,7 @@ public class Evaluation {
 	public static int evaluate(byte[][] board, int side)
 	{
 		long start = System.currentTimeMillis();
-		int myMaterial = getMaterialValue(side, board); //Get net material score
-		int theirMaterial = getMaterialValue(Board.getOpposingSide(side), board);
-		int eval =  (myMaterial - theirMaterial);
+		int material = getMaterialValue(side, board);
 		
 		//Add a check bonus
 		/*if(Board.isInCheck(Board.getOpposingSide(side), board))
@@ -81,7 +79,7 @@ public class Evaluation {
 		}*/
 		
 		Evaluation.TOTAL_EVAL_TIME += System.currentTimeMillis() - start;
-		return (eval * side);
+		return material;
 	}
 	
 	
@@ -89,48 +87,43 @@ public class Evaluation {
 	/** Return the raw material value on the given board of the given side **/
 	public static int getMaterialValue(int side, byte[][] board)
 	{
-		int eval = 0;
+		int wEval = 0;
+		int bEval = 0;
 		
 		for(int x = 0; x < board.length; x++)
 		{
 			for(int y = 0; y < board[0].length; y++)
 			{
 				byte piece = board[x][y];
-				
-				if(side == Board.SIDE_WHITE)
-				{
-					if(piece == Board.WHITE_PAWN)
-						eval += PAWN_VALUE;
-					if(piece == Board.WHITE_KNIGHT)
-						eval += KNIGHT_VALUE;
-					if(piece == Board.WHITE_BISHOP)
-						eval += BISHOP_VALUE;
-					if(piece == Board.WHITE_ROOK)
-						eval += ROOK_VALUE;
-					if(piece == Board.WHITE_QUEEN)
-						eval += QUEEN_VALUE;
-					if(piece == Board.WHITE_KING)
-						eval += KING_VALUE;
-				}
-				
-				if(side == Board.SIDE_BLACK)
-				{
-					if(piece == Board.BLACK_PAWN)
-						eval += PAWN_VALUE;
-					if(piece == Board.BLACK_KNIGHT)
-						eval += KNIGHT_VALUE;
-					if(piece == Board.BLACK_BISHOP)
-						eval += BISHOP_VALUE;
-					if(piece == Board.BLACK_ROOK)
-						eval += ROOK_VALUE;
-					if(piece == Board.BLACK_QUEEN)
-						eval += QUEEN_VALUE;
-					if(piece == Board.BLACK_KING)
-						eval += KING_VALUE;
-				}
+				if(piece == Board.WHITE_PAWN)
+					wEval += PAWN_VALUE;
+				if(piece == Board.WHITE_KNIGHT)
+					wEval += KNIGHT_VALUE;
+				if(piece == Board.WHITE_BISHOP)
+					wEval += BISHOP_VALUE;
+				if(piece == Board.WHITE_ROOK)
+					wEval += ROOK_VALUE;
+				if(piece == Board.WHITE_QUEEN)
+					wEval += QUEEN_VALUE;
+				if(piece == Board.WHITE_KING)
+					wEval += KING_VALUE;
+
+				if(piece == Board.BLACK_PAWN)
+					bEval += PAWN_VALUE;
+				if(piece == Board.BLACK_KNIGHT)
+					bEval += KNIGHT_VALUE;
+				if(piece == Board.BLACK_BISHOP)
+					bEval += BISHOP_VALUE;
+				if(piece == Board.BLACK_ROOK)
+					bEval += ROOK_VALUE;
+				if(piece == Board.BLACK_QUEEN)
+					bEval += QUEEN_VALUE;
+				if(piece == Board.BLACK_KING)
+					bEval += KING_VALUE;
 			}
 		}
-		return eval;
+		
+		return (bEval - wEval) * side;
 	}
 	
 	
@@ -144,32 +137,24 @@ public class Evaluation {
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    int max = -MATE;
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board.clone());
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);
-	        int score = -AB(depth - 1, result, Board.getOpposingSide(side), -a, -b);
-	        if( score > max )
-	            max = score;
-	        if(max > a)
-	        	a = max;
-	        if(max >= b)
-	        	return max;
+	        int score = -AB(depth - 1, result, Board.getOpposingSide(side), -b, -a);
 	        
+	        if(score >= b)
+	        	return b;
+	        if(score > a)
+	        	a = score;
 	    }
 	    
-	    return max;
+	    return a;
 	}
 	
 	
 	public static int negaMax(int depth, byte[][] board, int side) 
 	{	
-		if(Board.getKingLocation(side, board) == -1)
-		{
-			System.out.println("AAAAAAAAAHHHHHHHHHHH");
-		}
-		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
@@ -177,8 +162,9 @@ public class Evaluation {
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
 	    for (int[] move : moves)  
 	    {
-	    	byte[][] result = Board.clone(Board.playMove(move, board));
-	        int score = -negaMax(depth - 1, result, Board.getOpposingSide(side));
+	    	byte[][] result = Board.playMove(move, board);
+	        int score = -negaMax(depth - 1, result, -side);
+	        
 	        if(score > max)
 	            max = score;
 	        

@@ -44,7 +44,8 @@ public class Board
 	
 	
 	/* These are instance variables */
-	public int gameSide = Board.SIDE_BLACK;
+	//public int gameSide = Board.SIDE_BLACK;
+	public int gameSide = Board.SIDE_WHITE;
 	
 	/** Defines starting position.  (0,0) is a1 **/
 	public static final byte[][] init = 

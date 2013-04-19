@@ -4,18 +4,23 @@ import java.util.ArrayList;
 public class Evaluation {
 	
 	/* These ints define the piece values */
-	public static final int PAWN_VALUE = 10;
-	public static final int KNIGHT_VALUE = 30;
-	public static final int BISHOP_VALUE = 30;
-	public static final int ROOK_VALUE = 50;
-	public static final int QUEEN_VALUE = 90;
-	public static final int KING_VALUE = 1000;
+	public static final int PAWN_VALUE = 100;
+	public static final int KNIGHT_VALUE = 300;
+	public static final int BISHOP_VALUE = 300;
+	public static final int ROOK_VALUE = 500;
+	public static final int QUEEN_VALUE = 900;
+	public static final int KING_VALUE = 20000;
 	
 	/* Other constants used for scoring */
 	public static final int CHECK_BONUS = 10;
+	public static final int MOBILITY_WEIGHT = 5;
+	
+	public static int BLACK_MOB = 0;
+	public static int WHITE_MOB = 0;
+	
 	
 	/* Search depth constants */
-	public static int SEARCH_DEPTH = 1;
+	public static final int SEARCH_DEPTH = 3;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -49,7 +54,7 @@ public class Evaluation {
 			
 			else 
 			{
-				//eval = -AB(SEARCH_DEPTH, result, side, -MATE, MATE);
+				//eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
 				eval = -negaMax(SEARCH_DEPTH, result, -side);
 			}
 			
@@ -72,7 +77,7 @@ public class Evaluation {
 	/** Evaluate the result of the move on the given board **/
 	public static int evaluate(byte[][] board, int side)
 	{
-		side = Board.SIDE_BLACK;
+		//side = Board.SIDE_BLACK;
 		long start = System.currentTimeMillis();
 		int material = getMaterialValue(side, board);
 		
@@ -83,8 +88,10 @@ public class Evaluation {
 			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
 		}*/
 		
+		int mobilityScore = 0; //MOBILITY_WEIGHT * (bMob - wMob);
+		
 		Evaluation.TOTAL_EVAL_TIME += System.currentTimeMillis() - start;
-		return material;
+		return (material + mobilityScore) * side;
 	}
 	
 	
@@ -134,10 +141,13 @@ public class Evaluation {
 	
 	public static int AB(int depth, byte[][] board, int side, int a, int b) 
 	{	
+		if(Board.getKingLocation(side, board) == -1)
+			System.out.println("He be gone!");
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board.clone());
+	    
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);
@@ -160,6 +170,10 @@ public class Evaluation {
 	    
 	    int max = -MATE;
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
+	    
+	    if(moves.size() == 0)
+	    	return MATE;
+	    	
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);
@@ -172,4 +186,88 @@ public class Evaluation {
 	    
 	    return max;
 	}
+	
+	
+	/* Define piece square tables (PST's) */
+	
+	public static final byte[][] PawnTable = 
+		{{0,  0,  0,  0,  0,  0,  0,  0},
+		{50, 50, 50, 50, 50, 50, 50, 50},
+		{10, 10, 20, 30, 30, 20, 10, 10},
+		{5,  5, 10, 25, 25, 10,  5,  5},
+		{0,  0,  0, 20, 20,  0,  0,  0},
+		{5, -5,-10,  0,  0,-10, -5,  5},
+		{5, 10, 10,-20,-20, 10, 10,  5},
+		{ 0,  0,  0,  0,  0,  0,  0,  0 }};
+	
+	public static final byte[][] KnightTable = 
+			
+		{{-50,-40,-30,-30,-30,-30,-40,-50},
+		{-40,-20,  0,  0,  0,  0,-20,-40},
+		{-30,  0, 10, 15, 15, 10,  0,-30},
+		{-30,  5, 15, 20, 20, 15,  5,-30},
+		{-30,  0, 15, 20, 20, 15,  0,-30},
+		{-30,  5, 10, 15, 15, 10,  5,-30},
+		{-40,-20,  0,  5,  5,  0,-20,-40},
+		{-50,-40,-30,-30,-30,-30,-40,-50}};
+	
+	public static final byte[][] BishopTable = 
+			
+		{{-20,-10,-10,-10,-10,-10,-10,-20},
+		{-10,  0,  0,  0,  0,  0,  0,-10},
+		{-10,  0,  5, 10, 10,  5,  0,-10},
+		{-10,  5,  5, 10, 10,  5,  5,-10},
+		{-10,  0, 10, 10, 10, 10,  0,-10},
+		{-10, 10, 10, 10, 10, 10, 10,-10},
+		{-10,  5,  0,  0,  0,  0,  5,-10},
+		{-20,-10,-10,-10,-10,-10,-10,-20}};
+			
+	public static final byte[][] RookTable = 
+			
+		{{ 0,  0,  0,  0,  0,  0,  0,  0},
+		{5, 10, 10, 10, 10, 10, 10,  5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{ 0,  0,  0,  5,  5,  0,  0,  0}};
+	
+	public static final byte[][] QueenTable = 
+			
+		{{-20,-10,-10, -5, -5,-10,-10,-20},
+		{-10,  0,  0,  0,  0,  0,  0,-10},
+		{-10,  0,  5,  5,  5,  5,  0,-10},
+		{ -5,  0,  5,  5,  5,  5,  0, -5},
+		{  0,  0,  5,  5,  5,  5,  0, -5},
+		{-10,  5,  5,  5,  5,  5,  0,-10},
+		{-10,  0,  5,  0,  0,  0,  0,-10},
+		{-20,-10,-10, -5, -5,-10,-10,-20}};
+	
+	public static final byte[][] KingMiddleGame = 
+			
+		{{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-20,-30,-30,-40,-40,-30,-30,-20},
+		{-10,-20,-20,-20,-20,-20,-20,-10},
+		{ 20, 20,  0,  0,  0,  0, 20, 20},
+		{ 20, 30, 10,  0,  0, 10, 30, 20}};
+	
+	public static final byte[][] KingEndGame = 
+			
+		{{-50,-40,-30,-20,-20,-30,-40,-50},
+		{-30,-20,-10,  0,  0,-10,-20,-30},
+		{-30,-10, 20, 30, 30, 20,-10,-30},
+		{-30,-10, 30, 40, 40, 30,-10,-30},
+		{-30,-10, 30, 40, 40, 30,-10,-30},
+		{-30,-10, 20, 30, 30, 20,-10,-30},
+		{-30,-30,  0,  0,  0,  0,-30,-30},
+		{-50,-30,-30,-30,-30,-30,-30,-50}};
+	
+	/* End definition of PST's */
+			
+			
+			
 }

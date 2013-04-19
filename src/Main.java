@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
  * Check-checking takes up: 69% (4) 65% (3) as of 4/4/13, no optimizations
  * Move-gen takes up: 24% (4) 22% (3) as of 4/4/13, no optimizations
  */
+
+//OOB String: position startpos moves e2e4 a7a6 b1c3 b7b5 c3b5 a6a5 b5a7 b8a6 a7c8 a5a4 c8d6 c7d6 e4e5 g8f6 e5f6 a4a3 b2a3 a6b4 a1b1
 public class Main 
 {
 	/* Public static member variables */
@@ -88,11 +90,11 @@ public class Main
             }
             if(cmd.startsWith("position")) {
             	
-            	if(hasMoved == false)
+            	/*if(hasMoved == false)
             	{
             		board.gameSide = Board.SIDE_BLACK;
             		hasMoved = true;
-            	}
+            	}*/
             	
 				if(cmd.indexOf(("startpos"))!= -1) 
 				{
@@ -101,10 +103,21 @@ public class Main
 					{
 						String moves = cmd.substring(mstart+5);
 						board.gameBoard = Board.playMoves(moves);
+						moves = moves.trim();
+						String[] strArr = moves.split("\\s");
+						if( strArr.length % 2 == 1)
+						{
+							board.gameSide = Board.SIDE_BLACK;
+						}
+						else
+						{
+							board.gameSide = Board.SIDE_WHITE;
+						}
 					}
 				} 
 				else 
 				{
+					board.gameSide = Board.SIDE_WHITE;
 				}
 			}	
          else if(cmd.startsWith("setoption")) 
@@ -135,8 +148,8 @@ public class Main
 			
          else if(cmd.startsWith("go")) {
 				
-        	 	if(!hasMoved)
-        	 		board.gameSide = Board.SIDE_WHITE;
+        	 	//if(!hasMoved)
+        	 		//board.gameSide = Board.SIDE_WHITE;
         	 	
         	 	String bestMove = board.getBestMove();
 				System.out.println("bestmove "+ bestMove);

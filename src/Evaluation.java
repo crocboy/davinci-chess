@@ -13,14 +13,18 @@ public class Evaluation {
 	
 	/* Other constants used for scoring */
 	public static final int CHECK_BONUS = 10;
-	public static final int MOBILITY_WEIGHT = 5;
+	
+	/* The following are weight constants.  Normally they are 1.  +/- to change evaluations. */
+	public static final double MOBILITY_WEIGHT = 1;
+	public static final double MATERIAL_WEIGHT = 1;
+	public static final double POSITION_WEIGHT = 2;
 	
 	public static int BLACK_MOB = 0;
 	public static int WHITE_MOB = 0;
 	
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 3;
+	public static final int SEARCH_DEPTH = 2;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -54,8 +58,8 @@ public class Evaluation {
 			
 			else 
 			{
-				//eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
-				eval = -negaMax(SEARCH_DEPTH, result, -side);
+				eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
+				//eval = -negaMax(SEARCH_DEPTH, result, -side);
 			}
 			
 			if(eval > bestScore)
@@ -91,7 +95,7 @@ public class Evaluation {
 		int mobilityScore = 0; //MOBILITY_WEIGHT * (bMob - wMob);
 		
 		Evaluation.TOTAL_EVAL_TIME += System.currentTimeMillis() - start;
-		return (material + mobilityScore) * side;
+		return (material);
 	}
 	
 	
@@ -102,39 +106,84 @@ public class Evaluation {
 		int wEval = 0;
 		int bEval = 0;
 		
+		int wPos = 0;
+		int bPos = 0;
+		
 		for(int x = 0; x < board.length; x++)
 		{
 			for(int y = 0; y < board[0].length; y++)
 			{
 				byte piece = board[x][y];
 				if(piece == Board.WHITE_PAWN)
+				{
 					wEval += PAWN_VALUE;
+					wPos += WhitePawnTable[x][y];
+				}
 				if(piece == Board.WHITE_KNIGHT)
+				{
 					wEval += KNIGHT_VALUE;
+					wPos += WhiteKnightTable[x][y];
+				}
 				if(piece == Board.WHITE_BISHOP)
+				{
 					wEval += BISHOP_VALUE;
+					wPos += WhiteBishopTable[x][y];
+				}
 				if(piece == Board.WHITE_ROOK)
+				{
 					wEval += ROOK_VALUE;
+					wPos += WhiteRookTable[x][y];
+				}
 				if(piece == Board.WHITE_QUEEN)
+				{
 					wEval += QUEEN_VALUE;
+					wPos += WhiteQueenTable[x][y];
+				}
 				if(piece == Board.WHITE_KING)
+				{
 					wEval += KING_VALUE;
+					wPos += WhiteKingMiddleGame[x][y];
+				}
 
 				if(piece == Board.BLACK_PAWN)
+				{
 					bEval += PAWN_VALUE;
+					bPos += BlackPawnTable[x][y];
+				}
 				if(piece == Board.BLACK_KNIGHT)
+				{
 					bEval += KNIGHT_VALUE;
+					bPos += BlackKnightTable[x][y];
+				}
 				if(piece == Board.BLACK_BISHOP)
+				{
 					bEval += BISHOP_VALUE;
+					bPos += BlackBishopTable[x][y];
+				}
 				if(piece == Board.BLACK_ROOK)
+				{
 					bEval += ROOK_VALUE;
+					bPos += BlackRookTable[x][y];
+				}
 				if(piece == Board.BLACK_QUEEN)
+				{
 					bEval += QUEEN_VALUE;
+					bPos += BlackQueenTable[x][y];
+				}
 				if(piece == Board.BLACK_KING)
+				{
 					bEval += KING_VALUE;
+					bPos += BlackKingMiddleGame[x][y];
+				}
 			}
 		}
-		return (bEval - wEval) * side;
+		
+		double material = (bEval - wEval) * MATERIAL_WEIGHT;
+		double position = (bPos - wPos) * POSITION_WEIGHT;
+		
+		//return (bEval - wEval) * side;
+		int total = (int)(material + position) * side;
+		return total;
 	}
 	
 	
@@ -190,7 +239,8 @@ public class Evaluation {
 	
 	/* Define piece square tables (PST's) */
 	
-	public static final byte[][] PawnTable = 
+	public static final byte[][] WhitePawnTable = 
+			
 		{{0,  0,  0,  0,  0,  0,  0,  0},
 		{50, 50, 50, 50, 50, 50, 50, 50},
 		{10, 10, 20, 30, 30, 20, 10, 10},
@@ -200,7 +250,19 @@ public class Evaluation {
 		{5, 10, 10,-20,-20, 10, 10,  5},
 		{ 0,  0,  0,  0,  0,  0,  0,  0 }};
 	
-	public static final byte[][] KnightTable = 
+	public static final byte[][] BlackPawnTable = 
+			
+		{{ 0,  0,  0,  0,  0,  0,  0,  0},
+		{5, 10, 10,-20,-20, 10, 10,  5},
+		{5, -5,-10,  0,  0,-10, -5,  5},
+		{0,  0,  0, 20, 20,  0,  0,  0},
+		{5,  5, 10, 25, 25, 10,  5,  5},
+		{10, 10, 20, 30, 30, 20, 10, 10},
+		{50, 50, 50, 50, 50, 50, 50, 50},
+		{0,  0,  0,  0,  0,  0,  0,  0}};
+		
+	
+	public static final byte[][] WhiteKnightTable = 
 			
 		{{-50,-40,-30,-30,-30,-30,-40,-50},
 		{-40,-20,  0,  0,  0,  0,-20,-40},
@@ -211,7 +273,19 @@ public class Evaluation {
 		{-40,-20,  0,  5,  5,  0,-20,-40},
 		{-50,-40,-30,-30,-30,-30,-40,-50}};
 	
-	public static final byte[][] BishopTable = 
+	public static final byte[][] BlackKnightTable = 
+			
+		{{-50,-40,-30,-30,-30,-30,-40,-50},
+		{-40,-20,  0,  5,  5,  0,-20,-40},
+		{-30,  5, 10, 15, 15, 10,  5,-30},
+		{-30,  0, 15, 20, 20, 15,  0,-30},
+		{-30,  5, 15, 20, 20, 15,  5,-30},
+		{-30,  0, 10, 15, 15, 10,  0,-30},
+		{-40,-20,  0,  0,  0,  0,-20,-40},
+		{-50,-40,-30,-30,-30,-30,-40,-50}};
+		
+	
+	public static final byte[][] WhiteBishopTable = 
 			
 		{{-20,-10,-10,-10,-10,-10,-10,-20},
 		{-10,  0,  0,  0,  0,  0,  0,-10},
@@ -221,8 +295,20 @@ public class Evaluation {
 		{-10, 10, 10, 10, 10, 10, 10,-10},
 		{-10,  5,  0,  0,  0,  0,  5,-10},
 		{-20,-10,-10,-10,-10,-10,-10,-20}};
-			
-	public static final byte[][] RookTable = 
+	
+	public static final byte[][] BlackBishopTable = 
+		
+		{{-20,-10,-10,-10,-10,-10,-10,-20},
+		{-10,  5,  0,  0,  0,  0,  5,-10},
+		{-10, 10, 10, 10, 10, 10, 10,-10},
+		{-10,  0, 10, 10, 10, 10,  0,-10},
+		{-10,  5,  5, 10, 10,  5,  5,-10},
+		{-10,  0,  5, 10, 10,  5,  0,-10},
+		{-10,  0,  0,  0,  0,  0,  0,-10},
+		{-20,-10,-10,-10,-10,-10,-10,-20}};
+		
+	
+	public static final byte[][] WhiteRookTable = 
 			
 		{{ 0,  0,  0,  0,  0,  0,  0,  0},
 		{5, 10, 10, 10, 10, 10, 10,  5},
@@ -233,7 +319,20 @@ public class Evaluation {
 		{-5,  0,  0,  0,  0,  0,  0, -5},
 		{ 0,  0,  0,  5,  5,  0,  0,  0}};
 	
-	public static final byte[][] QueenTable = 
+	
+	public static final byte[][] BlackRookTable = 
+		
+		{{ 0,  0,  0,  5,  5,  0,  0,  0},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{-5,  0,  0,  0,  0,  0,  0, -5},
+		{5, 10, 10, 10, 10, 10, 10,  5},
+		{ 0,  0,  0,  0,  0,  0,  0,  0}};
+		
+		
+	public static final byte[][] WhiteQueenTable = 
 			
 		{{-20,-10,-10, -5, -5,-10,-10,-20},
 		{-10,  0,  0,  0,  0,  0,  0,-10},
@@ -244,7 +343,19 @@ public class Evaluation {
 		{-10,  0,  5,  0,  0,  0,  0,-10},
 		{-20,-10,-10, -5, -5,-10,-10,-20}};
 	
-	public static final byte[][] KingMiddleGame = 
+	public static final byte[][] BlackQueenTable = 
+		
+		{{-20,-10,-10, -5, -5,-10,-10,-20},
+		{-10,  0,  0,  0,  0,  5,  0,-10},
+		{-10,  0,  5,  5,  5,  5,  5,-10},
+		{  0,  0,  5,  5,  5,  5,  0, -5},
+		{ -5,  0,  5,  5,  5,  5,  0, -5},
+		{-10,  0,  5,  5,  5,  5,  0,-10},
+		{-10,  0,  0,  0,  0,  0,  0,-10},
+		{-20,-10,-10, -5, -5,-10,-10,-20}};
+		
+		
+	public static final byte[][] WhiteKingMiddleGame = 
 			
 		{{-30,-40,-40,-50,-50,-40,-40,-30},
 		{-30,-40,-40,-50,-50,-40,-40,-30},
@@ -255,7 +366,19 @@ public class Evaluation {
 		{ 20, 20,  0,  0,  0,  0, 20, 20},
 		{ 20, 30, 10,  0,  0, 10, 30, 20}};
 	
-	public static final byte[][] KingEndGame = 
+	public static final byte[][] BlackKingMiddleGame = 
+		
+		{{ 20, 30, 10,  0,  0, 10, 30, 20},
+		{ 20, 20,  0,  0,  0,  0, 20, 20},
+		{-10,-20,-20,-20,-20,-20,-20,-10},
+		{-20,-30,-30,-40,-40,-30,-30,-20},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30},
+		{-30,-40,-40,-50,-50,-40,-40,-30}};
+		
+	
+	public static final byte[][] WhiteKingEndGame = 
 			
 		{{-50,-40,-30,-20,-20,-30,-40,-50},
 		{-30,-20,-10,  0,  0,-10,-20,-30},
@@ -266,6 +389,18 @@ public class Evaluation {
 		{-30,-30,  0,  0,  0,  0,-30,-30},
 		{-50,-30,-30,-30,-30,-30,-30,-50}};
 	
+	public static final byte[][] BlackKingEndGame = 
+		
+		{{-50,-30,-30,-30,-30,-30,-30,-50},
+		{-30,-30,  0,  0,  0,  0,-30,-30},
+		{-30,-10, 20, 30, 30, 20,-10,-30},
+		{-30,-10, 30, 40, 40, 30,-10,-30},
+		{-30,-10, 30, 40, 40, 30,-10,-30},
+		{-30,-10, 20, 30, 30, 20,-10,-30},
+		{-30,-20,-10,  0,  0,-10,-20,-30},
+		{-50,-40,-30,-20,-20,-30,-40,-50}};
+		
+		
 	/* End definition of PST's */
 			
 			

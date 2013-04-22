@@ -197,6 +197,9 @@ public class Evaluation {
 	    
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board.clone());
 	    
+	    if(moves.size() == 0)
+	    	return MATE;
+	    
 	    for (int[] move : moves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);

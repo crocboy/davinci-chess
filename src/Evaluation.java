@@ -24,7 +24,7 @@ public class Evaluation {
 	
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 2;
+	public static int SEARCH_DEPTH = 2;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;

@@ -32,6 +32,8 @@ public class Board
 	public static int TOTAL_CHECKING_TIME = 0;
 	public static int TOTAL_CLONE_TIME = 0;
 	
+	public static int TOTAL_MOVES = 0;
+	
 	
 	/** Empty square **/
 	public static final byte EMPTY = 0;
@@ -160,27 +162,10 @@ public class Board
 	}
 	
 	
-	/** Play a single move (Over-ridden version) **/
+	/** Play a single move **/
 	public static byte[][] playMove(int[] move, byte[][] board)
 	{
 		return playMove(Board.numberToLetter(move[0], move[1]), board);
-	}
-	
-	
-	/** Checks if the given side is in check **/
-	public boolean isCheck(int side, byte[][] board)
-	{
-		ArrayList<int[]> moves = getAllPossibleMoves(side, board);
-		int kingSquare = getKingLocation(side, board);
-		
-		for(int[] pos : moves) //Look through all moves, see if our king's square is one of the destinations
-		{
-			int dest = pos[1];
-			if(dest == kingSquare)
-				return true;
-		}
-		
-		return false;
 	}
 	
 	
@@ -198,7 +183,8 @@ public class Board
 		{
 			long start = System.currentTimeMillis();
 			ArrayList<Integer> moves = getMoves(square, board);
-			//Board.TOTAL_MOVES_TIME += (System.currentTimeMillis() - start);
+			TOTAL_MOVES += (System.currentTimeMillis() - start);
+
 			for(int move : moves)
 			{
 				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
@@ -258,6 +244,7 @@ public class Board
 			case Board.BLACK_KING:
 				return getKingMoves(square, board);
 		}
+		
 		return allMoves;
 	}
 	

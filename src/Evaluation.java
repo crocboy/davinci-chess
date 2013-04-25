@@ -11,6 +11,10 @@ public class Evaluation {
 	public static final int QUEEN_VALUE = 900;
 	public static final int KING_VALUE = 20000;
 	
+	public static double NODES = 0;
+	public static double NPS = 0;
+	public static long START = 0;
+	
 	/* Other constants used for scoring */
 	public static final int CHECK_BONUS = 10;
 	
@@ -24,7 +28,7 @@ public class Evaluation {
 	
 	
 	/* Search depth constants */
-	public static int SEARCH_DEPTH = 2;
+	public static final int SEARCH_DEPTH = 3;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -35,11 +39,13 @@ public class Evaluation {
 	/** Find the best move among a list of moves and a given board **/
 	public static int[] findBestMove(byte[][] board, int side)
 	{
-		long s = System.currentTimeMillis();
+		NODES = 0;
+		START = System.currentTimeMillis();
 		
 		/* Reset check vars */
 		Board.TOTAL_CHECKING_TIME = 0;
 		Board.TOTAL_CLONE_TIME = 0;
+		Board.TOTAL_MOVES = 0;
 		Evaluation.TOTAL_EVAL_TIME = 0;
 		Board.TOTAL_CLONE_TIME =0;
 		
@@ -58,8 +64,8 @@ public class Evaluation {
 			
 			else 
 			{
-				eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
-				//eval = -negaMax(SEARCH_DEPTH, result, -side);
+				//eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
+				eval = -negaMax(SEARCH_DEPTH, result, -side);
 			}
 			
 			if(eval > bestScore)
@@ -67,12 +73,13 @@ public class Evaluation {
 				bestScore = eval;
 				bestMove = move;
 			}
+			System.out.println("Nodes per sec: " + (NODES / 1000 * (double)(System.currentTimeMillis() -START)));
 		}
 		
-		System.out.println("Total: " + (System.currentTimeMillis() - s));
+		System.out.println("Total: " + (System.currentTimeMillis() - START));
 		System.out.println("Total Clone: " + Board.TOTAL_CLONE_TIME);
 		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
-		//System.out.println("Total Search: " + Evaluation.TOTAL_SEARCH_TIME);
+		System.out.println("Total Moves: " + Board.TOTAL_MOVES);
 		
 		return bestMove;
 	}
@@ -190,6 +197,7 @@ public class Evaluation {
 	
 	public static int AB(int depth, byte[][] board, int side, int a, int b) 
 	{	
+		NODES++;
 		if(Board.getKingLocation(side, board) == -1)
 			System.out.println("He be gone!");
 	    if (depth == 0) //Limiting condition
@@ -217,6 +225,7 @@ public class Evaluation {
 	
 	public static int negaMax(int depth, byte[][] board, int side) 
 	{	
+		NODES++;
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    

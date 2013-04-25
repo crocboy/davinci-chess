@@ -1,0 +1,92 @@
+Index: Board.java
+===================================================================
+--- Board.java	(revision 21)
++++ Board.java	(working copy)
+@@ -44,7 +44,7 @@
+ 	
+ 	
+ 	/* These are instance variables */
+-	public int gameSide = Board.SIDE_BLACK;
++	public int gameSide = Board.SIDE_WHITE;
+ 	
+ 	/** Defines starting position.  (0,0) is a1 **/
+ 	public static final byte[][] init = 
+Index: Evaluation.java
+===================================================================
+--- Evaluation.java	(revision 21)
++++ Evaluation.java	(working copy)
+@@ -15,7 +15,7 @@
+ 	public static final int CHECK_BONUS = 10;
+ 	
+ 	/* Search depth constants */
+-	public static int SEARCH_DEPTH = 1;
++	public static int SEARCH_DEPTH = 2;
+ 	
+ 	/* Value for mate */
+ 	public static final int MATE = Integer.MAX_VALUE;
+@@ -72,7 +72,7 @@
+ 	/** Evaluate the result of the move on the given board **/
+ 	public static int evaluate(byte[][] board, int side)
+ 	{
+-		side = Board.SIDE_BLACK;
++		//side = Board.SIDE_BLACK;
+ 		long start = System.currentTimeMillis();
+ 		int material = getMaterialValue(side, board);
+ 		
+Index: Main.java
+===================================================================
+--- Main.java	(revision 21)
++++ Main.java	(working copy)
+@@ -88,20 +88,35 @@
+             }
+             if(cmd.startsWith("position")) {
+             	
+-            	if(hasMoved == false)
+-            	{
+-            		board.gameSide = Board.SIDE_BLACK;
+-            		hasMoved = true;
+-            	}
++            	//if(hasMoved == false)
++            	//{
++            		//board.gameSide = Board.SIDE_BLACK;
++            		//hasMoved = true;
++            	//}
+             	
+ 				if(cmd.indexOf(("startpos"))!= -1) 
+ 				{
+ 					int mstart = cmd.indexOf("moves");
+ 					if(mstart>-1) 
+-					{
++					
++                                        {
+ 						String moves = cmd.substring(mstart+5);
+ 						board.gameBoard = Board.playMoves(moves);
++                                                moves = moves.trim();
++                                                String[] strArr = moves.split("\\s");
++                                                if( strArr.length % 2 == 1)
++                                                {
++                                                    board.gameSide = Board.SIDE_BLACK;
++                                                }
++                                                else
++                                                {
++                                                    board.gameSide = Board.SIDE_WHITE;
++                                                }
+ 					}
++                                        else
++                                        {
++                                             board.gameSide = Board.SIDE_WHITE;
++                                        }
+ 				} 
+ 				else 
+ 				{
+@@ -135,8 +150,8 @@
+ 			
+          else if(cmd.startsWith("go")) {
+ 				
+-        	 	if(!hasMoved)
+-        	 		board.gameSide = Board.SIDE_WHITE;
++        	 	//if(!hasMoved)
++        	 	//	board.gameSide = Board.SIDE_WHITE;
+         	 	
+         	 	String bestMove = board.getBestMove();
+ 				System.out.println("bestmove "+ bestMove);

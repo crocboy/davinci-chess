@@ -35,6 +35,11 @@ public class Board
 	public static int TOTAL_MOVES = 0;
 	
 	
+	
+	
+	/** Variable for timing **/
+	public static long startTime = 0;
+	
 	/** Empty square **/
 	public static final byte EMPTY = 0;
 	
@@ -42,33 +47,33 @@ public class Board
 	public static final byte OOB = 99;
 	
 	/** Used to convert Algebraic to Coordinates (and vice-versa) **/
-	public static final String[] LETTER_ARRAY = {"a","b","c","d","e","f","g","h"};
+	public static final String[] LETTER_ARRAY = {"","","a","b","c","d","e","f","g","h","",""};
 	
 	
 	/* These are instance variables */
-	//public int gameSide = Board.SIDE_BLACK;
 	public int gameSide = Board.SIDE_WHITE;
 	
 	/** Defines starting position.  (0,0) is a1 **/
 	public static final byte[][] init = 
 			
-	   {{4,1,0,0,0,0,-1,-4},
-		{3,1,0,0,0,0,-1,-3},
-		{2,1,0,0,0,0,-1,-2},
-		{5,1,0,0,0,0,-1,-5},
-		{6,1,0,0,0,0,-1,-6},
-		{2,1,0,0,0,0,-1,-2},
-		{3,1,0,0,0,0,-1,-3},
-		{4,1,0,0,0,0,-1,-4}};
+		{{99,99,99,99,99,99,99,99,99,99,99,99},	
+		{99,99,99,99,99,99,99,99,99,99,99,99},	
+	    {99,99,4,1,0,0,0,0,-1,-4,99,99},
+		{99,99,3,1,0,0,0,0,-1,-3,99,99},
+		{99,99,2,1,0,0,0,0,-1,-2,99,99},
+		{99,99,5,1,0,0,0,0,-1,-5,99,99},
+		{99,99,6,1,0,0,0,0,-1,-6,99,99},
+		{99,99,2,1,0,0,0,0,-1,-2,99,99},
+		{99,99,3,1,0,0,0,0,-1,-3,99,99},
+		{99,99,4,1,0,0,0,0,-1,-4,99,99},
+		{99,99,99,99,99,99,99,99,99,99,99,99},	
+		{99,99,99,99,99,99,99,99,99,99,99,99}};
 
 	
 	
-	/** Defines our trimmed and padded board **/
-	byte[][] gameBoard = new byte[8][8];
+	/** Defines our padded board **/
+	byte[][] gameBoard = new byte[12][12];
 	
-	
-	/** Private variables */
-	private static long startTime;
 	
 	/** Public constructor: Empty **/
 	public Board()
@@ -138,7 +143,7 @@ public class Board
 			int[] start = numberToArray(move[0]);
 			int[] end = numberToArray(move[1]);
 			
-			byte piece = getPiece(board,move[0]);
+			byte piece = board[start[0]][start[1]];
 			
 			if(piece == Board.WHITE_PAWN || piece == Board.BLACK_PAWN) //Check for pawn promotion 
 			{
@@ -152,7 +157,7 @@ public class Board
 			int[] start = numberToArray(move[0]);
 			int[] end = numberToArray(move[1]);
 			
-			byte piece = getPiece(board,move[0]);
+			byte piece = board[start[0]][start[1]];
 			
 			board[start[0]][start[1]] = Board.EMPTY;
 			board[end[0]][end[1]] = piece;
@@ -268,9 +273,9 @@ public class Board
 	{
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		
-		for(int x = 0; x < 8; x++)
+		for(int x = 0; x < board.length; x++)
 		{
-			for(int y = 0; y < 8; y++)
+			for(int y = 0; y < board[0].length; y++)
 			{
 				if(side == Board.SIDE_BLACK)
 				{
@@ -317,52 +322,52 @@ public class Board
 		
 		if(piece == Board.WHITE_PAWN)
 		{
-			isBlocked = !(getPiece(board,square+8) == Board.EMPTY);
+			isBlocked = !(getPiece(board,square+12) == Board.EMPTY);
 			
 			if(!isBlocked) //Only add forward moves if it's not blocked
 			{
-				moves.add(square+8); //Up one
+				moves.add(square+12); //Up one
 				
-				if(y == 1 && getPiece(board,square + 16) == Board.EMPTY)
+				if(y == 1 && getPiece(board,square + 24) == Board.EMPTY)
 				{
-					moves.add(square+16); //Up 2
+					moves.add(square+24); //Up 2
 				}
 			}
 			
-			if(getPiece(board,x+1, y+1) != Board.EMPTY && getPiece(board,x+1, y+1) != Board.OOB)
+			if(board[x+1][y+1] != Board.EMPTY && board[x+1][y+1] != Board.OOB)
 			{
-				moves.add(square + 9); //attack up right
+				moves.add(square + 13); //attack up right
 			}
 			
-			if(getPiece(board,x-1, y+1) != Board.EMPTY && getPiece(board,x-1, y+1) != Board.OOB)
+			if(board[x-1][y+1] != Board.EMPTY && board[x-1][y+1] != Board.OOB)
 			{
-				moves.add(square + 7); //attack up left
+				moves.add(square + 11); //attack up left
 			}
 		}
 		else if(piece == Board.BLACK_PAWN) 
 		{
-			isBlocked = !(getPiece(board,square-8) == Board.EMPTY);
+			isBlocked = !(getPiece(board,square-12) == Board.EMPTY);
 			
 			if(!isBlocked) //Only add forward moves if it's not blocked
 			{
-				moves.add(square - 8); //1 down
+				moves.add(square - 12); //1 down
 				
-				if(y == 6 && getPiece(board,square - 16) == Board.EMPTY)
+				if(y == 6 && getPiece(board,square - 24) == Board.EMPTY)
 				{
-					moves.add(square - 16); //2 down
+					moves.add(square - 24); //2 down
 				}
 			}
 			
-			byte p = getPiece(board,x+1, y-1);
+			byte p = board[x+1][y-1];
 			if(p != Board.EMPTY && p != Board.OOB)
 			{
-				moves.add(square - 7); //Down left attack
+				moves.add(square - 11); //Down left attack
 			}
 			
-			p = getPiece(board,x-1, y-1);
+			p = board[x-1][y-1];
 			if(p != Board.EMPTY && p != Board.OOB)
 			{
-				moves.add(square - 9); //Down right attack
+				moves.add(square - 13); //Down right attack
 			}
 		}
 		
@@ -1415,84 +1420,22 @@ public class Board
 		return -1;
 	}
 	
-	/** Return the value at the given square.  Retrieves value from the full, padded board **/
+	
+	/** Get the piece at the given square **/
 	public static byte getPiece(byte[][] board, int square)
 	{
-		if(square > 63 || square < 0)
-			return Board.OOB;
-		
-		int[] loc = Board.numberToArray(square);
-		//return clone(padBoard(board))[loc[0]+2][loc[1]+2];
-		return padBoard(board)[loc[0]+2][loc[1]+2];
+		if(square < 0)
+			System.out.print(true);
+		int[] loc = numberToArray(square);
+		return board[loc[0]][loc[1]];
 	}
 	
-	
-	/** Return the value at the given coordinates **/
-	public static byte getPiece(final byte[][] board, int... loc)
+	/** Get the piece at the given square **/
+	public static byte getPiece(byte[][] board, int... loc)
 	{
-		if(loc[0] < -2)
-		{
-			//System.out.print(true);
-		}
-		
-		//return clone(padBoard(board))[loc[0]+2][loc[1]+2];
-		return padBoard(board)[loc[0]+2][loc[1]+2];
+		return board[loc[0]][loc[1]];
 	}
-	
-	
-	/** Take a full 12x12 array and trim it to an 8x8 array **/
-	public static byte[][] trimBoard(byte[][] board)
-	{
-		/* Size check */
-		if(board[0].length != 12 || board.length != 12)
-			return null;
 
-		byte[][] newBoard = new byte[8][8];
-		
-		for(int x = 0; x < board.length; x++)
-		{
-			for(int y= 0; y < board[0].length; y++)
-			{
-				if((x > 1 && x < 10) && (y > 1 && y < 10)) //If the coordinate is in the 8x8 region of the board, add it to our new board!
-					newBoard[x][y] = board[x][y];
-			}
-		}
-		
-		return newBoard;
-		
-	}
-	
-	
-	/** Take an 8x8 array and add 2 layers of padding on each side **/
-	public static byte[][] padBoard(byte[][] board)
-	{
-		/* Size check */
-		if(board[0].length != 8 || board.length != 8)
-			return null;
-		
-		byte[][] newBoard = new byte[12][12];
-		
-		for(int x = 0; x < newBoard.length; x++)
-		{
-			for(int y= 0; y < newBoard[0].length; y++)
-			{
-				if((x > 1 && x < 10) && (y > 1 && y < 10)) //If the coordinate is in the 8x8 region of the board, add it to our new board!
-					newBoard[x][y] = board[x-2][y-2];
-				else
-					newBoard[x][y] = Board.OOB; //the coordinate is not a valid chess suqare, make this coord a OOB
-			}
-		}
-		
-		return newBoard;
-	}
-	
-	
-	/** Convert coordinate notation to algebraic notation **/
-    public static String numberToLetter(int startX, int startY, int endX, int endY)
-    {
-            String s = LETTER_ARRAY[startX] + String.valueOf(startY+1) + LETTER_ARRAY[endX] + String.valueOf(endY+1);
-            return s;
-    }
     
     /** Convert sqaure notation to algebraic notation **/
     public static String numberToLetter(int s, int e)
@@ -1500,19 +1443,10 @@ public class Board
     	int[] start = numberToArray(s);
     	int[] end = numberToArray(e);
     	
-        String result = LETTER_ARRAY[start[0]] + String.valueOf(start[1] + 1) + LETTER_ARRAY[end[0]] + String.valueOf(end[1]+1);
+        String result = LETTER_ARRAY[start[0]] + String.valueOf(start[1] - 1) + LETTER_ARRAY[end[0]] + String.valueOf(end[1] - 1);
         return result;
     }
     
-    
-    /** Convert a square-to-square move to a String **/
-    public static String moveToString(int s, int e)
-    {
-    	int[] start = numberToArray(s);
-    	int[] end = numberToArray(e);
-    	
-    	return numberToLetter(start[0],start[1],end[0],end[1]);
-    }
     
     /** Convert algebraic notation to coordinate location, as an int[] (Square notation) **/
     public static int[] letterToNumber(String s)
@@ -1526,31 +1460,31 @@ public class Board
             int[] end = new int[2];
             
             start[0] = Util.indexOf(LETTER_ARRAY, String.valueOf(s.charAt(0)));
-            start[1] = Integer.parseInt(String.valueOf(s.charAt(1))) - 1;
+            start[1] = Integer.parseInt(String.valueOf(s.charAt(1))) + 1;
             end[0] = Util.indexOf(LETTER_ARRAY, String.valueOf(s.charAt(2)));
-            end[1] = Integer.parseInt(String.valueOf(s.charAt(3))) - 1;
+            end[1] = Integer.parseInt(String.valueOf(s.charAt(3))) + 1;
             
             int[] square = {arrayToNumber(start), arrayToNumber(end)};
             return square;
     }
     
     
-    /** Convert a single square number (12) to it's coordinate equivalent (4,1) **/
+    /** Convert a single square number (26) to it's coordinate equivalent (2,2) on a 12x12 board **/
     public static int[] numberToArray(int square)
     {
     	int[] pos = new int[2];
-    	pos[0] = square % 8; //Get x-coord
-    	pos[1] = square / 8; //Get y-coord
+    	pos[0] = square % 12; //Get x-coord
+    	pos[1] = square / 12; //Get y-coord
     	return pos;
     }
     
-    /** Convert an array coordinate (4,1) to it's single number equivalent (12)**/
+    /** Convert an array coordinate (2,2) on a 12x12 board to it's single number equivalent (26)**/
     public static int arrayToNumber(int... coord)
     {
     	if(coord.length != 2)
     		return -1;
     	
-    	int square = coord[1] * 8;
+    	int square = coord[1] * 12;
     	square += coord[0];
     	
     	return square;

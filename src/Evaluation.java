@@ -28,7 +28,7 @@ public class Evaluation {
 	
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 3;
+	public static final int SEARCH_DEPTH = 2;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -64,8 +64,8 @@ public class Evaluation {
 			
 			else 
 			{
-				//eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
-				eval = -negaMax(SEARCH_DEPTH, result, -side);
+				eval = -AB(SEARCH_DEPTH, result, -side, -MATE, MATE);
+				//eval = -negaMax(SEARCH_DEPTH, result, -side);
 			}
 			
 			if(eval > bestScore)
@@ -73,13 +73,12 @@ public class Evaluation {
 				bestScore = eval;
 				bestMove = move;
 			}
-			System.out.println("Nodes per sec: " + (NODES / 1000 * (double)(System.currentTimeMillis() -START)));
+			//System.out.println("Nodes per sec: " + (NODES / 1000 * (double)(System.currentTimeMillis() -START)));
 		}
 		
 		System.out.println("Total: " + (System.currentTimeMillis() - START));
 		System.out.println("Total Clone: " + Board.TOTAL_CLONE_TIME);
 		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
-		System.out.println("Total Moves: " + Board.TOTAL_MOVES);
 		
 		return bestMove;
 	}
@@ -124,63 +123,63 @@ public class Evaluation {
 				if(piece == Board.WHITE_PAWN)
 				{
 					wEval += PAWN_VALUE;
-					wPos += WhitePawnTable[x][y];
+					wPos += WhitePawnTable[x-2][y-2];
 				}
 				if(piece == Board.WHITE_KNIGHT)
 				{
 					wEval += KNIGHT_VALUE;
-					wPos += WhiteKnightTable[x][y];
+					wPos += WhiteKnightTable[x-2][y-2];
 				}
 				if(piece == Board.WHITE_BISHOP)
 				{
 					wEval += BISHOP_VALUE;
-					wPos += WhiteBishopTable[x][y];
+					wPos += WhiteBishopTable[x-2][y-2];
 				}
 				if(piece == Board.WHITE_ROOK)
 				{
 					wEval += ROOK_VALUE;
-					wPos += WhiteRookTable[x][y];
+					wPos += WhiteRookTable[x-2][y-2];
 				}
 				if(piece == Board.WHITE_QUEEN)
 				{
 					wEval += QUEEN_VALUE;
-					wPos += WhiteQueenTable[x][y];
+					wPos += WhiteQueenTable[x-2][y-2];
 				}
 				if(piece == Board.WHITE_KING)
 				{
 					wEval += KING_VALUE;
-					wPos += WhiteKingMiddleGame[x][y];
+					wPos += WhiteKingMiddleGame[x-2][y-2];
 				}
 
 				if(piece == Board.BLACK_PAWN)
 				{
 					bEval += PAWN_VALUE;
-					bPos += BlackPawnTable[x][y];
+					bPos += BlackPawnTable[x-2][y-2];
 				}
 				if(piece == Board.BLACK_KNIGHT)
 				{
 					bEval += KNIGHT_VALUE;
-					bPos += BlackKnightTable[x][y];
+					bPos += BlackKnightTable[x-2][y-2];
 				}
 				if(piece == Board.BLACK_BISHOP)
 				{
 					bEval += BISHOP_VALUE;
-					bPos += BlackBishopTable[x][y];
+					bPos += BlackBishopTable[x-2][y-2];
 				}
 				if(piece == Board.BLACK_ROOK)
 				{
 					bEval += ROOK_VALUE;
-					bPos += BlackRookTable[x][y];
+					bPos += BlackRookTable[x-2][y-2];
 				}
 				if(piece == Board.BLACK_QUEEN)
 				{
 					bEval += QUEEN_VALUE;
-					bPos += BlackQueenTable[x][y];
+					bPos += BlackQueenTable[x-2][y-2];
 				}
 				if(piece == Board.BLACK_KING)
 				{
 					bEval += KING_VALUE;
-					bPos += BlackKingMiddleGame[x][y];
+					bPos += BlackKingMiddleGame[x-2][y-2];
 				}
 			}
 		}
@@ -200,10 +199,11 @@ public class Evaluation {
 		NODES++;
 		if(Board.getKingLocation(side, board) == -1)
 			System.out.println("He be gone!");
+		
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board.clone());
+	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
 	    
 	    if(moves.size() == 0)
 	    	return MATE;

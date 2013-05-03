@@ -53,8 +53,9 @@ public class Evaluation {
 		int[] bestMove = null;
 		
 		ArrayList<int[]> moves = Board.getAllPossibleMoves(side, board);
+		ArrayList<int[]> legalMoves = Board.limitMoves(board, side, moves);
 		
-		for(int[] move : moves)
+		for(int[] move : legalMoves)
 		{
 			byte[][] result = Board.clone(Board.playMove(move, board));
 			int eval = 0;
@@ -137,6 +138,9 @@ public class Evaluation {
 				}
 				if(piece == Board.WHITE_ROOK)
 				{
+					if(x == 0 || y == 0)
+						System.out.print(true);
+					
 					wEval += ROOK_VALUE;
 					wPos += WhiteRookTable[x-2][y-2];
 				}
@@ -204,11 +208,12 @@ public class Evaluation {
 	    	return evaluate(board, side);
 	    
 	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
+	    ArrayList<int[]> legalMoves = Board.limitMoves(board, side, moves);
 	    
 	    if(moves.size() == 0)
 	    	return MATE;
 	    
-	    for (int[] move : moves)  
+	    for (int[] move : legalMoves)  
 	    {
 	    	byte[][] result = Board.playMove(move, board);
 	        int score = -AB(depth - 1, result, -side, -b, -a);

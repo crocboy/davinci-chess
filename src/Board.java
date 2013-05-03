@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Random;
 
 /** This class represents our board.
  * It also generates possible moves.
@@ -130,10 +129,10 @@ public class Board
 		
 		if(s.equals("e1g1") && Main.board.gameSide == Board.SIDE_BLACK) //White castling!
 		{
-			board[5][0] = Board.WHITE_ROOK;
-			board[6][0] = Board.WHITE_KING;
-			board[4][0] = Board.EMPTY;
-			board[7][0] = Board.EMPTY;
+			board[7][2] = Board.WHITE_ROOK;
+			board[8][2] = Board.WHITE_KING;
+			board[9][2] = Board.EMPTY;
+			board[10][2] = Board.EMPTY;
 			return board;
 		}
 		
@@ -190,19 +189,33 @@ public class Board
 			ArrayList<Integer> moves = getMoves(square, board);
 			TOTAL_MOVES += (System.currentTimeMillis() - start);
 
+			/* Add all moves to list (Pseudo-legal moves */
 			for(int move : moves)
 			{
-				if(!causesCheck(new int[] {square, move}, side, board)) //Make sure it doesn't cause check 
-				{
-					//String s = moveToString(square,move);
-					//System.out.println(s);
-					allMoves.add(new int[] {square,move});
-				}
+				allMoves.add(new int[] {square,move});
+			}
+		}
+		//end("All moves");
+
+		return allMoves;
+	}
+	
+	
+	/** Take in a list of moves, and return only the ones that don't cause check **/
+	public static ArrayList<int[]> limitMoves(byte[][] board, int side, ArrayList<int[]> moves)
+	{
+		ArrayList<int[]> allMoves = new ArrayList<int[]>();
+		
+		for(int[] move : moves)
+		{
+			if(!causesCheck(move, side, board)) //Make sure it doesn't cause check 
+			{
+				//String s = moveToString(square,move);
+				//System.out.println(s);
+				allMoves.add(move);
 			}
 		}
 		
-		//end("All moves");
-
 		return allMoves;
 	}
 	

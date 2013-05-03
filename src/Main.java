@@ -9,7 +9,9 @@ import java.io.InputStreamReader;
  * Move-gen takes up: 24% (4) 22% (3) as of 4/4/13, no optimizations
  */
 
-//OOB String: position startpos moves e2e4 a7a6 b1c3 b7b5 c3b5 a6a5 b5a7 b8a6 a7c8 a5a4 c8d6 c7d6 e4e5 g8f6 e5f6 a4a3 b2a3 a6b4 a1b1
+//King gone String: position startpos moves e2e4 a7a6 b1c3 b7b5 c3b5 a6a5 b5a7 b8a6 a7c8 a5a4 c8d6 c7d6 e4e5 g8f6 e5f6 a4a3 b2a3 a6b4 a1b1
+
+//Other error string: position startpos moves e2e4 g8f6 d2d4 b8c6 d4d5 c6e5 g1f3 e5f3 g2f3 c7c6 d5c6 d7c6 f1c4 d8d1 e1d1 c6c5 c4b5 e8d8 h1e1
 public class Main 
 {
 	/* Public static member variables */

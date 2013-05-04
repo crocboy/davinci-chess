@@ -28,7 +28,7 @@ public class Evaluation {
 	
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 2;
+	public static final int SEARCH_DEPTH = 5;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -57,6 +57,7 @@ public class Evaluation {
 		
 		for(int[] move : legalMoves)
 		{
+			NODES++;
 			byte[][] result = Board.clone(Board.playMove(move, board));
 			int eval = 0;
 			
@@ -74,12 +75,18 @@ public class Evaluation {
 				bestScore = eval;
 				bestMove = move;
 			}
-			//System.out.println("Nodes per sec: " + (NODES / 1000 * (double)(System.currentTimeMillis() -START)));
 		}
+		
+		/* Nodes per second calculations */
+		double totalTime = System.currentTimeMillis() - START;
+		double nps = NODES / (totalTime/1000f);
+		System.out.println("info nps " + (int)nps  + " nodes " + (int)NODES);
 		
 		System.out.println("Total: " + (System.currentTimeMillis() - START));
 		System.out.println("Total Clone: " + Board.TOTAL_CLONE_TIME);
 		System.out.println("Total Checking: " + Board.TOTAL_CHECKING_TIME);
+		System.out.println("Total Moves: " + Board.TOTAL_MOVES);
+		
 		
 		return bestMove;
 	}
@@ -207,7 +214,7 @@ public class Evaluation {
 	    if (depth == 0) //Limiting condition
 	    	return evaluate(board, side);
 	    
-	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side, Board.clone(board));
+	    ArrayList<int[]> moves = Board.getAllPossibleMoves(side,board);
 	    ArrayList<int[]> legalMoves = Board.limitMoves(board, side, moves);
 	    
 	    if(moves.size() == 0)

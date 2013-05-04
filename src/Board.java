@@ -177,6 +177,7 @@ public class Board
 	public static ArrayList<int[]> getAllPossibleMoves(int side, final byte[][] board)
 	{
 		//start();
+		long start = System.currentTimeMillis();
 		ArrayList<int[]> allMoves = new ArrayList<int[]>();
 		
 		/* Find the locations of all white pieces */
@@ -185,10 +186,8 @@ public class Board
 		/* Add all moves for all pieces */
 		for(int square : locs)
 		{
-			long start = System.currentTimeMillis();
 			ArrayList<Integer> moves = getMoves(square, board);
-			TOTAL_MOVES += (System.currentTimeMillis() - start);
-
+			
 			/* Add all moves to list (Pseudo-legal moves */
 			for(int move : moves)
 			{
@@ -196,7 +195,7 @@ public class Board
 			}
 		}
 		//end("All moves");
-
+		TOTAL_MOVES += (System.currentTimeMillis() - start);
 		return allMoves;
 	}
 	
@@ -1032,8 +1031,6 @@ public class Board
 	/** Return true if the given move will cause check for the given side**/
 	public static boolean causesCheck(int[] move, int side, byte[][] board)
 	{
-		board = clone(board); //Store our current board for use later
-		
 		String moveString = numberToLetter(move[0],move[1]); //Play the move on our board
 		board = playMove(moveString, board);
 		
@@ -1384,7 +1381,7 @@ public class Board
 			}
 			
 			/* Search for enemy knights */
-			if(getPiece(board,x+1,y+2) == Board.BLACK_KNIGHT || getPiece(board,x+1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x+2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x+2,y-1) == Board.BLACK_KNIGHT || getPiece(board,x-1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x-1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x-2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x-2,y-1) == Board.BLACK_KNIGHT)
+			if(getPiece(board,x+1,y+2) == Board.BLACK_KNIGHT || getPiece(board,x+1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x+2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x+2,y-1) == Board.BLACK_KNIGHT || getPiece(board,x-1,y-2) == Board.BLACK_KNIGHT || getPiece(board,x-1,y+2) == Board.BLACK_KNIGHT || getPiece(board,x-2,y+1) == Board.BLACK_KNIGHT || getPiece(board,x-2,y-1) == Board.BLACK_KNIGHT)
 			{
 				return true;
 			}
@@ -1446,6 +1443,8 @@ public class Board
 	/** Get the piece at the given square **/
 	public static byte getPiece(byte[][] board, int... loc)
 	{
+		if(loc[0] < 0 || loc[1] < 0)
+			System.out.print(true);
 		return board[loc[0]][loc[1]];
 	}
 

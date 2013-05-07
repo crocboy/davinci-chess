@@ -1002,7 +1002,7 @@ public class Board
 	{
 		if(piece == Board.BLACK_PAWN)
 		{
-			if(end[1] != 0) //Check position
+			if(end[1] != 2) //Check position
 				return false;
 			else 
 			{
@@ -1013,7 +1013,7 @@ public class Board
 		}
 		else if(piece == Board.WHITE_PAWN)
 		{
-			if(end[1] != 7) //Check position
+			if(end[1] != 9) //Check position
 				return false;
 			else 
 			{

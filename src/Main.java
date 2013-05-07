@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 //King gone String: position startpos moves e2e4 a7a6 b1c3 b7b5 c3b5 a6a5 b5a7 b8a6 a7c8 a5a4 c8d6 c7d6 e4e5 g8f6 e5f6 a4a3 b2a3 a6b4 a1b1
 
 //Other error string: position startpos moves e2e3 b8c6 d1f3
+
+//Pawn promotion error string: position startpos moves g1f3 b8c6 b1c3 e7e6 h2h4 f8b4 a2a3 b4a5 d2d3 a5c3 b2c3 d8f6 c1b2 g8e7 g2g3 c6e5 f3e5 f6e5 f1g2 e5b5 a1b1 e6e5 c3c4 b5c5 e2e3 d7d6 d3d4 c5c4 d4e5 c8g4 f2f3 g4f5 e3e4 f5e6 h4h5 c4c5 f3f4 d6e5 f4e5 c5e3 d1e2 e3g3 e2f2 g3f2 e1f2 a8d8 b1d1 d8d1 h1d1 e6c4 b2c3 f7f6 e5f6 g7f6 c3f6 h8f8 e4e5 e7c6 d1e1 c4f1 f2f1 c6d4 e1c1 b7b6 c2c3 d4f5 a3a4 f5e3 f1f2 e3g4 f2g1 g4f6 e5f6 e8d8 c1f1 d8c8 g2e4 f8g8 g1f2 g8f8 f1g1 c8b8 f2e3 f8e8 h5h6 a7a6 g1f1 e8g8 f1f2 g8g3 f2f3 g3g4 f6f7 g4h4 f7f8q
 public class Main 
 {
 	/* Public static member variables */

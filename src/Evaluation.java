@@ -28,7 +28,7 @@ public class Evaluation {
 	
 	
 	/* Search depth constants */
-	public static final int SEARCH_DEPTH = 5;
+	public static final int SEARCH_DEPTH = 3;
 	
 	/* Value for mate */
 	public static final int MATE = Integer.MAX_VALUE;
@@ -106,7 +106,7 @@ public class Evaluation {
 			//System.out.println("Can cause check: " + move[0] + " to " + move[1]);
 		}*/
 		
-		int mobilityScore = 0; //MOBILITY_WEIGHT * (bMob - wMob);
+		//int mobilityScore = Board.getAllPossibleMoves(side, board).size(); //MOBILITY_WEIGHT * (bMob - wMob);
 		
 		Evaluation.TOTAL_EVAL_TIME += System.currentTimeMillis() - start;
 		return (material);

@@ -1,0 +1,1 @@
+A personal project I undertook to prove to myself that I can indeed make a chess engine.
